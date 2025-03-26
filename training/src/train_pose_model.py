@@ -25,7 +25,7 @@ def main():
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=15, batch_size=32)
 
-    model.save('models/classifier.h5')
+    model.save('../models/classifier.h5')
 
     # Save label mapping for the browser later
     import json
