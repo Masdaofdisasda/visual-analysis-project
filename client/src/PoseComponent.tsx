@@ -1,14 +1,22 @@
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect, useState} from 'react';
 import { Pose, POSE_CONNECTIONS, Results } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import * as drawingUtils from '@mediapipe/drawing_utils';
 import {GraphModel, loadGraphModel, Tensor, tensor} from "@tensorflow/tfjs";
+
+const labelColors: Record<string, string> = {
+    left: '#ff8400',
+    right: '#00aaff',
+    neutral: '#8a8a8a',
+};
 
 const PoseDetection: React.FC = () => {
     // Refs to HTML elements
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const modelRef = useRef<GraphModel | null>(null);
+
+    const [label, setLabel] = useState<string>('neutral');
 
     useEffect(() => {
         if (!videoRef.current || !canvasRef.current) return;
@@ -71,8 +79,8 @@ const PoseDetection: React.FC = () => {
                 const prediction = modelRef.current.predict(input) as Tensor
                 prediction.array().then(probabilities => {
                     const labelIndex = probabilities[0].indexOf(Math.max(...probabilities[0]));
-                    const label = labelMap[labelIndex];
-                    console.log(label);
+                    const predictedLabel = labelMap[labelIndex];
+                    setLabel(predictedLabel)
                 })
                 input.dispose();
             }
@@ -93,13 +101,21 @@ const PoseDetection: React.FC = () => {
     }, []);
 
     return (
-        <div style={{ textAlign: 'center' }}>
-            <video ref={videoRef} style={{ display: 'none' }} />
+        <div
+            className={`flex flex-col items-center justify-start text-center transition-colors duration-500 w-screen h-screen pt-8 px-4`}
+            style={{backgroundColor: labelColors[label]}}
+        >
+            <h2 className="text-2xl font-semibold mb-6">
+                Detected Pose: <span className="capitalize">{label}</span>
+            </h2>
+
+            <video ref={videoRef} style={{display: 'none'}}/>
+
             <canvas
                 ref={canvasRef}
                 width={640}
                 height={480}
-                style={{ border: '1px solid black' }}
+                className="border border-black shadow-lg"
             />
         </div>
     );
