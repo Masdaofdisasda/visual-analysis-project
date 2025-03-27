@@ -40,7 +40,7 @@ def process_directory(video_dir: str, label_from_filename=True) -> pd.DataFrame:
         if file.endswith(".mp4"):
             label = file.split('_')[0] if label_from_filename else "unknown"
             video_path = os.path.join(video_dir, file)
-            print(f"🔍 Processing {file}...")
+            print(f"Processing {file}...")
             data.extend(extract_keypoints_from_video(video_path, label, pose_model=pose_model))
 
     # Define column names
