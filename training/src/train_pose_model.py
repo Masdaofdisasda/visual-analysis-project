@@ -23,9 +23,15 @@ def main():
     ])
 
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.summary()
+
     model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=15, batch_size=32)
 
-    model.save('../models/model.keras')
+    loss, accuracy = model.evaluate(X_test, y_test)
+    print('Test loss:', loss)
+    print('Test accuracy:', accuracy)
+
+    tf.saved_model.save(model, '../models/tf_model')
 
     # Save label mapping for the browser later
     import json
