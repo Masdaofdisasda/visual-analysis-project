@@ -28,7 +28,7 @@ training/
 │
 ├── venv/                  # Python virtual environment
 ├── data/                  # Input videos or extracted pose CSVs
-├── models/                # Trained models (e.g., .h5, .json)
+├── models/                # Trained models
 ├── src/                   # Source code scripts
 ├── requirements.txt       # Python dependencies
 └── README.md              # Project setup instructions

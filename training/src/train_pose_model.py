@@ -1,42 +1,44 @@
 import pandas as pd
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
+import json
 from sklearn.preprocessing import LabelEncoder
+from typing import Tuple
 
-def main():
-    df = pd.read_csv('../data/pose_data.csv')
 
-    X = df.drop('label', axis=1).values
-    y = df['label'].values
+def load_pose_data(csv_path: str) -> Tuple[pd.DataFrame, pd.Series]:
+    df = pd.read_csv(csv_path)
+    X = df.drop('label', axis=1)
+    y = df['label']
+    return X, y
 
+
+def encode_labels(y: pd.Series) -> Tuple[pd.Series, LabelEncoder]:
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y)
+    return y_encoded, label_encoder
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
 
+def build_model(input_dim: int, num_classes: int) -> tf.keras.Model:
     model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=(X.shape[1],)),
+        tf.keras.layers.Input(shape=(input_dim,)),
         tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dropout(0.3),
         tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(len(label_encoder.classes_), activation='softmax')
+        tf.keras.layers.Dense(num_classes, activation='softmax')
     ])
+    model.compile(
+        optimizer='adam',
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
+    return model
 
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model.summary()
 
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=15, batch_size=32)
+def save_model(model: tf.keras.Model, export_path: str):
+    tf.saved_model.save(model, export_path)
 
-    loss, accuracy = model.evaluate(X_test, y_test)
-    print('Test loss:', loss)
-    print('Test accuracy:', accuracy)
 
-    tf.saved_model.save(model, '../models/tf_model')
-
-    # Save label mapping for the browser later
-    import json
-    with open('../models/label_map.json', 'w') as f:
-        json.dump({i: label for i, label in enumerate(label_encoder.classes_)}, f)
-
-if __name__ == "__main__":
-    main()
+def save_label_map(label_encoder: LabelEncoder, path: str):
+    label_map = {i: label for i, label in enumerate(label_encoder.classes_)}
+    with open(path, 'w') as f:
+        json.dump(label_map, f)
