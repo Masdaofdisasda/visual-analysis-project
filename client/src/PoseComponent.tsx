@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Pose, POSE_CONNECTIONS, Results } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import * as drawingUtils from '@mediapipe/drawing_utils';
-import {GraphModel, LayersModel, loadGraphModel, loadLayersModel, Tensor, tensor} from "@tensorflow/tfjs";
+import {GraphModel, loadGraphModel, Tensor, tensor} from "@tensorflow/tfjs";
 
 const PoseDetection: React.FC = () => {
     // Refs to HTML elements
@@ -33,7 +33,7 @@ const PoseDetection: React.FC = () => {
         });
 
         const loadModel = async () => {
-            modelRef.current = await loadGraphModel('model_tfjs/model.json');
+            modelRef.current = await loadGraphModel('tfjs_model/model.json');
         };
         loadModel();
 
