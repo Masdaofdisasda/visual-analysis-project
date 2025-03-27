@@ -1,24 +1,30 @@
-import os
 import subprocess
+from pathlib import Path
 
-DATA_DIR = "data"
-OUTPUT_DIR = "output"
-MODEL_FILE = "model.h5"
+def convert_saved_model_to_tfjs(input_dir: Path, output_dir: Path):
+    # Ensure output directory exists
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-model_path = os.path.join(DATA_DIR, MODEL_FILE)
-output_path = os.path.join(OUTPUT_DIR)
+    command = [
+        "tensorflowjs_converter",
+        "--input_format=tf_saved_model",
+        "--output_format=tfjs_graph_model",
+        str(input_dir),
+        str(output_dir)
+    ]
 
-# Create output dir if it doesn't exist
-os.makedirs(output_path, exist_ok=True)
+    print(f"🔁 Converting {input_dir} → {output_dir}")
+    try:
+        subprocess.run(command, check=True)
+        print(f"TF.js model saved to {output_dir}")
+    except subprocess.CalledProcessError as e:
+        print("Conversion failed:", e)
 
-# Build the command
-cmd = [
-    "tensorflowjs_converter",
-    "--input_format=keras",
-    model_path,
-    output_path
-]
+if __name__ == "__main__":
+    # Resolve paths relative to project root
+    project_root = Path(__file__).resolve().parents[1]
 
-print(f"🔄 Converting {model_path} to TensorFlow.js format in {output_path}...")
-subprocess.run(cmd, check=True)
-print("✅ Conversion complete.")
+    input_dir = project_root / "training" / "models" / "tf_model"
+    output_dir = project_root / "client" / "public" / "tfjs_model"
+
+    convert_saved_model_to_tfjs(input_dir, output_dir)
