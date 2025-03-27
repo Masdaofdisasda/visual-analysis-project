@@ -2,11 +2,13 @@ import React, { useRef, useEffect } from 'react';
 import { Pose, POSE_CONNECTIONS, Results } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import * as drawingUtils from '@mediapipe/drawing_utils';
+import {GraphModel, LayersModel, loadGraphModel, loadLayersModel, Tensor, tensor} from "@tensorflow/tfjs";
 
 const PoseDetection: React.FC = () => {
     // Refs to HTML elements
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const modelRef = useRef<GraphModel | null>(null);
 
     useEffect(() => {
         if (!videoRef.current || !canvasRef.current) return;
@@ -29,6 +31,11 @@ const PoseDetection: React.FC = () => {
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5,
         });
+
+        const loadModel = async () => {
+            modelRef.current = await loadGraphModel('model_tfjs/model.json');
+        };
+        loadModel();
 
         // 2. Define the callback for results
         pose.onResults((results: Results) => {
@@ -54,13 +61,20 @@ const PoseDetection: React.FC = () => {
             }
 
             // 4. For classification, you can log or store these landmarks
-            if (results.poseLandmarks) {
-                // Each landmark has x, y, z, visibility
-                // console.log(results.poseLandmarks);
+            if (results.poseLandmarks && modelRef.current) {
+                const keypoints = results.poseLandmarks.flatMap(lm =>
+                    [lm.x, lm.y, lm.z ?? 0, lm.visibility ?? 1])
 
-                // Example: gather keypoints for a custom classifier
-                // let keypoints = results.poseLandmarks.map(landmark => [landmark.x, landmark.y, landmark.z ?? 0]);
-                // Then feed keypoints into your classification logic.
+                const input = tensor([keypoints]);
+                const labelMap = ['left', 'neutral', 'right'];
+
+                const prediction = modelRef.current.predict(input) as Tensor
+                prediction.array().then(probabilities => {
+                    const labelIndex = probabilities[0].indexOf(Math.max(...probabilities[0]));
+                    const label = labelMap[labelIndex];
+                    console.log(label);
+                })
+                input.dispose();
             }
 
             ctx.restore();
