@@ -78,6 +78,8 @@ const PoseDetection: React.FC = () => {
 
                 const prediction = modelRef.current.predict(input) as Tensor
                 prediction.array().then(probabilities => {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
                     const labelIndex = probabilities[0].indexOf(Math.max(...probabilities[0]));
                     const predictedLabel = labelMap[labelIndex];
                     setLabel(predictedLabel)
