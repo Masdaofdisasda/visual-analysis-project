@@ -1,8 +1,9 @@
 {
-  "name": "visual-analysis-project",
+  "name": "DJ-Pose-Estimation",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -36,5 +37,39 @@
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0",
     "vite-plugin-electron": "^0.29.0"
+  },
+  "build": {
+    "appId": "com.davidkoeppl.human-pose-estimation",
+    "files": [
+      "src/**/*",
+      "dist/**/*",
+      "electron/main.js",
+      "electron/preload.js"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.graphics-design"
+    },
+    "dmg": {
+      "iconSize": 128,
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }
