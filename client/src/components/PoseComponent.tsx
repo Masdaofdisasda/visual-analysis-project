@@ -104,8 +104,17 @@ const PoseDetection: React.FC = () => {
 
     return (
         <div
-            className={`flex flex-col items-center justify-start text-center transition-colors duration-500 w-screen h-screen pt-8 px-4`}
-            style={{backgroundColor: labelColors[label]}}
+            style={{
+                backgroundColor: labelColors[label],
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                padding: '10px'
+            }}
         >
             <h2 className="text-2xl font-semibold mb-6">
                 Detected Pose: <span className="capitalize">{label}</span>
