@@ -11,7 +11,7 @@ function App() {
           <Canvas camera={{ position: [1.0, 1.0, 0.5] }}>
               <Perf position="top-left" />
               <ambientLight intensity={0.5} />
-              <FboParticles />
+              <FboParticles size={1024} />
               <OrbitControls />
           </Canvas>
           <PoseComponent />
