@@ -1,10 +1,11 @@
 // based on https://blog.maximeheckel.com/posts/the-magical-world-of-particles-with-react-three-fiber-and-shaders/
 
-import simulationVertexShader from './shaders/simVert.glsl?raw';
-import simulationFragmentShader from './shaders/simFrag.glsl?raw';
 import * as THREE from "three";
 
-const getRandomData = (width, height) => {
+import simulationVertexShader from '../shaders/simulationVertex.glsl?raw';
+import simulationFragmentShader from '../shaders/simulationFragment.glsl?raw';
+
+function getRandomData(width: number, height: number) {
     // we need to create a vec4 since we're passing the positions to the fragment shader
     // data textures need to have 4 components, R, G, B, and A
     const length = width * height * 4
@@ -17,17 +18,17 @@ const getRandomData = (width, height) => {
         const theta = THREE.MathUtils.randFloatSpread(360);
         const phi = THREE.MathUtils.randFloatSpread(360);
 
-        data[stride] =  distance * Math.sin(theta) * Math.cos(phi)
-        data[stride + 1] =  distance * Math.sin(theta) * Math.sin(phi);
-        data[stride + 2] =  distance * Math.cos(theta);
-        data[stride + 3] =  1.0; // this value will not have any impact
+        data[stride] = distance * Math.sin(theta) * Math.cos(phi)
+        data[stride + 1] = distance * Math.sin(theta) * Math.sin(phi);
+        data[stride + 2] = distance * Math.cos(theta);
+        data[stride + 3] = 1.0; // this value will not have any impact
     }
 
     return data;
 }
 
 class SimulationMaterial extends THREE.ShaderMaterial {
-    constructor(size) {
+    constructor(size: number) {
         const positionsTexture = new THREE.DataTexture(
             getRandomData(size, size),
             size,

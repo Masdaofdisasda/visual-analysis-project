@@ -21,6 +21,8 @@
     "@react-three/postprocessing": "^3.0.4",
     "@tailwindcss/vite": "^4.0.17",
     "@tensorflow/tfjs": "^4.22.0",
+    "drei": "^2.2.21",
+    "r3f-perf": "^7.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwindcss": "^4.0.17",
