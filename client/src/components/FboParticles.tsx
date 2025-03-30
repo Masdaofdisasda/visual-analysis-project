@@ -53,13 +53,22 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
         []
     );
 
-    const renderTarget = useFBO(size, size, {
+    const renderTargetA = useFBO(size, size, {
         minFilter: THREE.NearestFilter,
         magFilter: THREE.NearestFilter,
         format: THREE.RGBAFormat,
         stencilBuffer: false,
         type: THREE.FloatType,
     });
+    const renderTargetB = useFBO(size, size, {
+        minFilter: THREE.NearestFilter,
+        magFilter: THREE.NearestFilter,
+        format: THREE.RGBAFormat,
+        stencilBuffer: false,
+        type: THREE.FloatType,
+    });
+    const readTarget = useRef(renderTargetA);
+    const writeTarget = useRef(renderTargetB);
 
     // Generate our positions attributes array
     const particlesPosition = useMemo(() => {
@@ -83,25 +92,50 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
     useFrame((state) => {
         const { gl, clock } = state;
 
-        // Render the simulation into the renderTarget
-        gl.setRenderTarget(renderTarget);
+        // 1) Set the old positions
+        if (simulationMaterialRef.current) {
+            simulationMaterialRef.current.uniforms.uDeltaTime.value = clock.getDelta();
+            //simulationMaterialRef.current.uniforms.positions.value = readTarget.current.texture;
+        }
+
+        // 2) Render the simulation into the *write* target
+        gl.setRenderTarget(writeTarget.current);
         gl.clear();
-        gl.render(scene, camera);
+        gl.render(scene, camera); // The scene that has the <mesh> using <simulationMaterial>
         gl.setRenderTarget(null);
 
-        // Update the shader material uniform with the render target's texture
+        // 3) Now the new updated positions are in writeTarget.current.texture
+        //    Let's assign it to the actual display material (the points)
         if (points.current && points.current.material) {
-            const shaderMat = points.current.material as THREE.ShaderMaterial;
-            if (shaderMat.uniforms && shaderMat.uniforms.uPositions) {
-                shaderMat.uniforms.uPositions.value = renderTarget.texture;
+            const displayMat = points.current.material as THREE.ShaderMaterial;
+            if (displayMat.uniforms?.uPositions) {
+                displayMat.uniforms.uPositions.value = writeTarget.current.texture;
             }
         }
 
-        // Update the simulation material uniform
-        if (simulationMaterialRef.current && simulationMaterialRef.current.uniforms) {
-            simulationMaterialRef.current.uniforms.uTime.value = clock.elapsedTime;
-        }
+        // 4) Swap read/write
+        const temp = readTarget.current;
+        readTarget.current = writeTarget.current;
+        writeTarget.current = temp;
     });
+
+    const displayPass = <points ref={points}>
+        <bufferGeometry>
+            <bufferAttribute
+                attach="attributes-position"
+                count={particlesPosition.length / 3}
+                array={particlesPosition}
+                itemSize={3}
+            />
+        </bufferGeometry>
+        <shaderMaterial
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+            fragmentShader={fragmentShader}
+            vertexShader={vertexShader}
+            uniforms={uniforms}
+        />
+    </points>
 
     return (
         <>
@@ -125,23 +159,7 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
                 </mesh>,
                 scene
             )}
-            <points ref={points}>
-                <bufferGeometry>
-                    <bufferAttribute
-                        attach="attributes-position"
-                        count={particlesPosition.length / 3}
-                        array={particlesPosition}
-                        itemSize={3}
-                    />
-                </bufferGeometry>
-                <shaderMaterial
-                    blending={THREE.AdditiveBlending}
-                    depthWrite={false}
-                    fragmentShader={fragmentShader}
-                    vertexShader={vertexShader}
-                    uniforms={uniforms}
-                />
-            </points>
+            {displayPass}
         </>
     );
 }

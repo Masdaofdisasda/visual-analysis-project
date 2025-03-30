@@ -14,11 +14,11 @@ function getRandomData(width: number, height: number) {
     for (let i = 0; i < length; i++) {
         const stride = i * 4;
 
-        const distance = Math.sqrt(Math.random()) * 2.0;
-        const theta = THREE.MathUtils.randFloatSpread(360);
-        const phi = THREE.MathUtils.randFloatSpread(360);
+        const distance = 1.0; // All points will be on the surface of a unit sphere
+        const theta = Math.acos(THREE.MathUtils.randFloatSpread(2)); // Polar angle
+        const phi = THREE.MathUtils.randFloatSpread(360); // Azimuthal angle
 
-        data[stride] = distance * Math.sin(theta) * Math.cos(phi)
+        data[stride] = distance * Math.sin(theta) * Math.cos(phi);
         data[stride + 1] = distance * Math.sin(theta) * Math.sin(phi);
         data[stride + 2] = distance * Math.cos(theta);
         data[stride + 3] = 1.0; // this value will not have any impact
@@ -41,7 +41,7 @@ class SimulationMaterial extends THREE.ShaderMaterial {
         const simulationUniforms = {
             positions: { value: positionsTexture },
             uFrequency: { value: 0.25 },
-            uTime: { value: 0 },
+            uDeltaTime: { value: 0 },
         };
 
         super({
