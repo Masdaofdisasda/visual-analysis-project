@@ -4,15 +4,15 @@ import * as THREE from "three";
 import {useFBO} from "@react-three/drei";
 import {
     createPositionSimulationMaterial,
-    createVelocitySimulationMaterial, getRandomData,
-    getZeroVelocityData
+    createVelocitySimulationMaterial, getPositionData,
+    getVelocityData
 } from "../material/SimulationMaterial.tsx";
 import {createDisplayMaterial} from "../material/DisplayMaterial.tsx";
 
 const SIZE = 1024;
 
 const texPositions = new THREE.DataTexture(
-    getRandomData(SIZE, SIZE),
+    getPositionData(SIZE, SIZE),
     SIZE,
     SIZE,
     THREE.RGBAFormat,
@@ -20,7 +20,7 @@ const texPositions = new THREE.DataTexture(
 );
 texPositions.needsUpdate = true;
 const texVelocities = new THREE.DataTexture(
-    getZeroVelocityData(SIZE, SIZE),
+    getVelocityData(SIZE, SIZE),
     SIZE,
     SIZE,
     THREE.RGBAFormat,
@@ -130,7 +130,7 @@ function FboParticles({ size = SIZE }: FboParticlesProps) {
 
         if (velocitySimulationMaterialRef.current) {
             velocitySimulationMaterialRef.current.uniforms.uDeltaTime.value = delta;
-            velocitySimulationMaterialRef.current.uniforms.uGlobalForce.value = new THREE.Vector3(0, 0, 0);
+            velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(0, 0, 0);
         }
 
         gl.setRenderTarget(velocityWrite.current);

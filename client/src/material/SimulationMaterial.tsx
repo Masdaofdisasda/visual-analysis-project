@@ -7,37 +7,41 @@ import simulationVertexShader from '../shaders/simulationVertex.glsl?raw';
 import posSimulationFragmentShader from '../shaders/positionSimulationFragment.glsl?raw';
 import velSimulationFragmentShader from '../shaders/velocitySimulationFragment.glsl?raw';
 
-export function getRandomData(width: number, height: number) {
-    // we need to create a vec4 since we're passing the positions to the fragment shader
-    // data textures need to have 4 components, R, G, B, and A
-    const length = width * height * 4
+export function getPositionData(width: number, height: number, radius = 2) {
+    const length = width * height * 4;
     const data = new Float32Array(length);
 
-    for (let i = 0; i < length; i++) {
-        const stride = i * 4;
+    for (let i = 0; i < length; i += 4) {
+        // Random direction
+        const theta = Math.acos((Math.random() * 2) - 1); // [0..π]
+        const phi = Math.random() * 2 * Math.PI;          // [0..2π]
 
-        const distance = 1.0; // All points will be on the surface of a unit sphere
-        const theta = Math.acos(THREE.MathUtils.randFloatSpread(2)); // Polar angle
-        const phi = THREE.MathUtils.randFloatSpread(360); // Azimuthal angle
+        // Random distance <= radius
+        const r = radius * Math.cbrt(Math.random());
 
-        data[stride] = distance * Math.sin(theta) * Math.cos(phi);
-        data[stride + 1] = distance * Math.sin(theta) * Math.sin(phi);
-        data[stride + 2] = distance * Math.cos(theta);
-        data[stride + 3] = 1.0; // this value will not have any impact
+        // Convert spherical -> Cartesian
+        const sinTheta = Math.sin(theta);
+        data[i + 0] = r * sinTheta * Math.cos(phi); // x
+        data[i + 1] = r * sinTheta * Math.sin(phi); // y
+        data[i + 2] = r * Math.cos(theta);          // z
+        data[i + 3] = 1.0;                          // w (unused)
     }
 
     return data;
 }
 
-export function getZeroVelocityData(width: number, height: number) {
+export function getVelocityData(width: number, height: number, velocityScale = 0.1) {
     const length = width * height * 4;
     const data = new Float32Array(length);
+
     for (let i = 0; i < length; i += 4) {
-        data[i + 0] = 0; // vx
-        data[i + 1] = 0; // vy
-        data[i + 2] = 0; // vz
-        data[i + 3] = 1; // unused or damping
+        // small random velocity in [-velocityScale..velocityScale]
+        data[i + 0] = (Math.random() - 0.5) * 2 * velocityScale;
+        data[i + 1] = (Math.random() - 0.5) * 2 * velocityScale;
+        data[i + 2] = (Math.random() - 0.5) * 2 * velocityScale;
+        data[i + 3] = 1.0; // w (unused or damping factor if you want per-particle)
     }
+
     return data;
 }
 
@@ -54,7 +58,9 @@ function createVelocitySimulationMaterial(texPositions: THREE.Texture, texVeloci
         texPositions: texPositions,
         texVelocities: texVelocities,
         uDeltaTime: 0,
-        uGlobalForce: new THREE.Vector3(0, 0, 0),
+        uForce: new THREE.Vector3(0, 0, 0),
+        uDamping: 0.99,
+        uBoundaryRadius: 2.0,
     },  simulationVertexShader, velSimulationFragmentShader)
 }
 
