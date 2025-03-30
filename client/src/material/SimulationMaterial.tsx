@@ -28,7 +28,7 @@ function getRandomData(width: number, height: number) {
     return data;
 }
 
-function createSimulationMaterial(size: number) {
+function createPositionSimulationMaterial(size: number) {
     const bufferTexture = new THREE.DataTexture(
         getRandomData(size, size),
         size,
@@ -46,4 +46,4 @@ function createSimulationMaterial(size: number) {
 }
 
 
-export { createSimulationMaterial };
+export { createPositionSimulationMaterial };
