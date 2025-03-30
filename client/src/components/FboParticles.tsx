@@ -1,13 +1,26 @@
 import {createPortal, extend, useFrame} from "@react-three/fiber";
-import SimulationMaterial from "../material/SimulationMaterial.tsx";
 import {useMemo, useRef} from "react";
 import * as THREE from "three";
 import {useFBO} from "@react-three/drei";
 
 import vertexShader from "../shaders/particleVertex.glsl?raw";
 import fragmentShader from "../shaders/particleFragment.glsl?raw";
+import createSimulationMaterial, {getRandomData} from "../material/SimulationMaterial.tsx";
 
-extend({ SimulationMaterial: SimulationMaterial });
+const size = 1024;
+
+const positionsTexture = new THREE.DataTexture(
+    getRandomData(size, size),
+    size,
+    size,
+    THREE.RGBAFormat,
+    THREE.FloatType
+);
+positionsTexture.needsUpdate = true;
+
+const SimulationMaterial = createSimulationMaterial(positionsTexture);
+
+extend({ SimulationMaterial });
 
 type FboParticlesProps = {
     size: number;
@@ -15,9 +28,9 @@ type FboParticlesProps = {
 
 function FboParticles({ size = 1024 }: FboParticlesProps) {
 
-    // This reference gives us direct access to our points
+    const simulationMaterial = new SimulationMaterial();
+
     const points = useRef<THREE.Points>(null);
-    const simulationMaterialRef = useRef<SimulationMaterial>(null);
 
     const scene = useMemo(() => new THREE.Scene(), []);
     const camera = useMemo(
@@ -93,10 +106,10 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
         const { gl, clock } = state;
 
         // 1) Set the old positions
-        if (simulationMaterialRef.current) {
-            simulationMaterialRef.current.uniforms.uDeltaTime.value = clock.getDelta();
-            //simulationMaterialRef.current.uniforms.positions.value = readTarget.current.texture;
-        }
+        simulationMaterial.uDeltaTime = clock.getDelta();
+        simulationMaterial.positions = readTarget.current.texture;
+        //simulationMaterialRef.current.uniforms.positions.value = readTarget.current.texture;
+
 
         // 2) Render the simulation into the *write* target
         gl.setRenderTarget(writeTarget.current);
@@ -141,7 +154,7 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
         <>
             {createPortal(
                 <mesh>
-                    <simulationMaterial ref={simulationMaterialRef} args={[size]}/>
+                    <simulationMaterial args={[size]}/>
                     <bufferGeometry>
                         <bufferAttribute
                             attach="attributes-position"

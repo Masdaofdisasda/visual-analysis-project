@@ -1,11 +1,13 @@
 // based on https://blog.maximeheckel.com/posts/the-magical-world-of-particles-with-react-three-fiber-and-shaders/
 
 import * as THREE from "three";
+import {shaderMaterial} from "@react-three/drei";
 
 import simulationVertexShader from '../shaders/simulationVertex.glsl?raw';
 import simulationFragmentShader from '../shaders/simulationFragment.glsl?raw';
+import {DataTexture} from "three";
 
-function getRandomData(width: number, height: number) {
+export function getRandomData(width: number, height: number) {
     // we need to create a vec4 since we're passing the positions to the fragment shader
     // data textures need to have 4 components, R, G, B, and A
     const length = width * height * 4
@@ -27,30 +29,13 @@ function getRandomData(width: number, height: number) {
     return data;
 }
 
-class SimulationMaterial extends THREE.ShaderMaterial {
-    constructor(size: number) {
-        const positionsTexture = new THREE.DataTexture(
-            getRandomData(size, size),
-            size,
-            size,
-            THREE.RGBAFormat,
-            THREE.FloatType
-        );
-        positionsTexture.needsUpdate = true;
-
-        const simulationUniforms = {
-            positions: { value: positionsTexture },
-            uFrequency: { value: 0.25 },
-            uDeltaTime: { value: 0 },
-        };
-
-        super({
-            uniforms: simulationUniforms,
-            vertexShader: simulationVertexShader,
-            fragmentShader: simulationFragmentShader,
-        });
-    }
+function createSimulationMaterial(bufferTexture: DataTexture) {
+    return shaderMaterial( {
+        positions: bufferTexture,
+        uFrequency: 0.25,
+        uDeltaTime: 0,
+    },  simulationVertexShader, simulationFragmentShader)
 }
 
 
-export default SimulationMaterial;
+export default createSimulationMaterial;
