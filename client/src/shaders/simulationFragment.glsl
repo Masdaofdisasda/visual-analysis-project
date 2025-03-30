@@ -1,4 +1,4 @@
-uniform sampler2D positions;
+uniform sampler2D texBuffer;
 uniform float uDeltaTime;
 uniform float uFrequency;
 
@@ -6,7 +6,7 @@ varying vec2 vUv;
 
 void main() {
   // Read current position from the positions texture
-    vec3 pos = texture2D(positions, vUv).rgb;
+    vec3 pos = texture2D(texBuffer, vUv).rgb;
 
     // Calculate rotation angle (example: rotate 1 radian per second)
     float angle = uDeltaTime * uFrequency;

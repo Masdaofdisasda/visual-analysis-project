@@ -39,7 +39,7 @@ function createSimulationMaterial(size: number) {
     bufferTexture.needsUpdate = true;
 
     return shaderMaterial( {
-        positions: bufferTexture,
+        texBuffer: bufferTexture,
         uFrequency: 0.25,
         uDeltaTime: 0,
     },  simulationVertexShader, simulationFragmentShader)

@@ -100,12 +100,12 @@ function FboParticles({ size = SIZE }: FboParticlesProps) {
         gl.setRenderTarget(null);
 
         // (3) Use writeTarget’s updated texture in the display pass
-        if (particleMaterialRef.current && particleMaterialRef.current.uniforms?.uPositions) {
-                particleMaterialRef.current.uniforms.uPositions.value = writeTarget.current.texture;
+        if (particleMaterialRef.current && particleMaterialRef.current.uniforms?.texPositions) {
+                particleMaterialRef.current.uniforms.texPositions.value = writeTarget.current.texture;
         }
 
         if (simulationMaterialRef.current) {
-            simulationMaterialRef.current.uniforms.positions.value = writeTarget.current.texture;
+            simulationMaterialRef.current.uniforms.texBuffer.value = writeTarget.current.texture;
         }
 
         const temp = readTarget.current;

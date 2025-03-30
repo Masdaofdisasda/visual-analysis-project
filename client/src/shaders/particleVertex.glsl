@@ -1,8 +1,8 @@
-uniform sampler2D uPositions;
+uniform sampler2D texPositions;
 uniform float uTime;
 
 void main() {
-  vec3 pos = texture2D(uPositions, position.xy).xyz;
+  vec3 pos = texture2D(texPositions, position.xy).xyz;
 
   vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
   vec4 viewPosition = viewMatrix * modelPosition;
