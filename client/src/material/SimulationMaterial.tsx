@@ -5,9 +5,8 @@ import {shaderMaterial} from "@react-three/drei";
 
 import simulationVertexShader from '../shaders/simulationVertex.glsl?raw';
 import simulationFragmentShader from '../shaders/simulationFragment.glsl?raw';
-import {DataTexture} from "three";
 
-export function getRandomData(width: number, height: number) {
+function getRandomData(width: number, height: number) {
     // we need to create a vec4 since we're passing the positions to the fragment shader
     // data textures need to have 4 components, R, G, B, and A
     const length = width * height * 4
@@ -29,7 +28,16 @@ export function getRandomData(width: number, height: number) {
     return data;
 }
 
-function createSimulationMaterial(bufferTexture: DataTexture) {
+function createSimulationMaterial(size: number) {
+    const bufferTexture = new THREE.DataTexture(
+        getRandomData(size, size),
+        size,
+        size,
+        THREE.RGBAFormat,
+        THREE.FloatType
+    );
+    bufferTexture.needsUpdate = true;
+
     return shaderMaterial( {
         positions: bufferTexture,
         uFrequency: 0.25,
@@ -38,4 +46,4 @@ function createSimulationMaterial(bufferTexture: DataTexture) {
 }
 
 
-export default createSimulationMaterial;
+export { createSimulationMaterial };

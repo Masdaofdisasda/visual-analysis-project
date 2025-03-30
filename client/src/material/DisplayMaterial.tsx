@@ -11,4 +11,4 @@ function createDisplayMaterial() {
     },  vertexShader, fragmentShader)
 }
 
-export default createDisplayMaterial;
+export { createDisplayMaterial };

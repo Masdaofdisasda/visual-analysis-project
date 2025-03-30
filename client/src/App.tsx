@@ -2,7 +2,6 @@ import './App.css'
 import {Canvas} from "@react-three/fiber";
 import {OrbitControls} from "@react-three/drei";
 import { Perf } from 'r3f-perf';
-import * as THREE from "three";
 import PoseComponent from "./components/PoseComponent.tsx";
 import FboParticles from "./components/FboParticles.tsx";
 
