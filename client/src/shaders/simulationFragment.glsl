@@ -9,7 +9,7 @@ void main() {
     vec3 pos = texture2D(positions, vUv).rgb;
 
     // Calculate rotation angle (example: rotate 1 radian per second)
-    float angle = uDeltaTime;
+    float angle = uDeltaTime * uFrequency;
     float c = cos(angle);
     float s = sin(angle);
 

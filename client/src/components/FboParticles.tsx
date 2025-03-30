@@ -1,11 +1,10 @@
-import {createPortal, extend, useFrame} from "@react-three/fiber";
+import {createPortal, extend, useFrame, useThree} from "@react-three/fiber";
 import {useMemo, useRef} from "react";
 import * as THREE from "three";
 import {useFBO} from "@react-three/drei";
 
-import vertexShader from "../shaders/particleVertex.glsl?raw";
-import fragmentShader from "../shaders/particleFragment.glsl?raw";
 import createSimulationMaterial, {getRandomData} from "../material/SimulationMaterial.tsx";
+import createDisplayMaterial from "../material/DisplayMaterial.tsx";
 
 const size = 1024;
 
@@ -19,20 +18,20 @@ const positionsTexture = new THREE.DataTexture(
 positionsTexture.needsUpdate = true;
 
 const SimulationMaterial = createSimulationMaterial(positionsTexture);
+const DisplayMaterial = createDisplayMaterial();
 
 extend({ SimulationMaterial });
+extend({ DisplayMaterial });
 
 type FboParticlesProps = {
     size: number;
 }
 
 function FboParticles({ size = 1024 }: FboParticlesProps) {
-
-    const simulationMaterial = new SimulationMaterial();
-
     const points = useRef<THREE.Points>(null);
+    const simMat = useRef(null);
 
-    const scene = useMemo(() => new THREE.Scene(), []);
+    const offLineScene = useMemo(() => new THREE.Scene(), []);
     const camera = useMemo(
         () =>
             new THREE.OrthographicCamera(-1, 1, 1, -1, 1 / Math.pow(2, 53), 1),
@@ -96,40 +95,36 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
         return particles;
     }, [size]);
 
-    const uniforms = useMemo(() => ({
-        uPositions: {
-            value: null,
+    useFrame((state, delta) => {
+        const { gl } = state;
+
+        // (1) Set simulation uniforms
+        if (simMat.current) {
+            simMat.current.uniforms.uDeltaTime.value = delta;
         }
-    }), [])
 
-    useFrame((state) => {
-        const { gl, clock } = state;
-
-        // 1) Set the old positions
-        simulationMaterial.uDeltaTime = clock.getDelta();
-        simulationMaterial.positions = readTarget.current.texture;
-        //simulationMaterialRef.current.uniforms.positions.value = readTarget.current.texture;
-
-
-        // 2) Render the simulation into the *write* target
+        // (2) Render the offscreen (simulation) pass → writeTarget
         gl.setRenderTarget(writeTarget.current);
         gl.clear();
-        gl.render(scene, camera); // The scene that has the <mesh> using <simulationMaterial>
+        gl.render(offLineScene, camera);
         gl.setRenderTarget(null);
 
-        // 3) Now the new updated positions are in writeTarget.current.texture
-        //    Let's assign it to the actual display material (the points)
-        if (points.current && points.current.material) {
+        // (3) Use writeTarget’s updated texture in the display pass
+        if (points.current?.material) {
             const displayMat = points.current.material as THREE.ShaderMaterial;
             if (displayMat.uniforms?.uPositions) {
                 displayMat.uniforms.uPositions.value = writeTarget.current.texture;
             }
         }
 
-        // 4) Swap read/write
+        if (simMat.current) {
+            simMat.current.uniforms.positions.value = writeTarget.current.texture;
+        }
+
         const temp = readTarget.current;
         readTarget.current = writeTarget.current;
         writeTarget.current = temp;
+
     });
 
     const displayPass = <points ref={points}>
@@ -141,12 +136,10 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
                 itemSize={3}
             />
         </bufferGeometry>
-        <shaderMaterial
+        <displayMaterial
             blending={THREE.AdditiveBlending}
-            depthWrite={false}
-            fragmentShader={fragmentShader}
-            vertexShader={vertexShader}
-            uniforms={uniforms}
+            depthTest={false}
+            attach="material"
         />
     </points>
 
@@ -154,7 +147,7 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
         <>
             {createPortal(
                 <mesh>
-                    <simulationMaterial args={[size]}/>
+                    <simulationMaterial ref={simMat} args={[size]}/>
                     <bufferGeometry>
                         <bufferAttribute
                             attach="attributes-position"
@@ -170,7 +163,7 @@ function FboParticles({ size = 1024 }: FboParticlesProps) {
                         />
                     </bufferGeometry>
                 </mesh>,
-                scene
+                offLineScene
             )}
             {displayPass}
         </>
