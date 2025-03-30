@@ -38,9 +38,10 @@ extend({ DisplayMaterial });
 
 type FboParticlesProps = {
     size: number;
+    label: string;
 }
 
-function FboParticles({ size = SIZE }: FboParticlesProps) {
+function FboParticles({ size = SIZE, label }: FboParticlesProps) {
     const particleMaterialRef = useRef<THREE.ShaderMaterial>(null);
     const positionSimulationMaterialRef = useRef<THREE.ShaderMaterial>(null);
     const velocitySimulationMaterialRef = useRef<THREE.ShaderMaterial>(null);
@@ -127,10 +128,17 @@ function FboParticles({ size = SIZE }: FboParticlesProps) {
 
     useFrame(({ gl }, delta) => {
         // (1) Set simulation uniforms
-
         if (velocitySimulationMaterialRef.current) {
             velocitySimulationMaterialRef.current.uniforms.uDeltaTime.value = delta;
-            velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(0, 0, 0);
+
+            const strength = 0.7;
+            if (label === 'left') {
+                velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(strength);
+            } else if (label === 'right') {
+                velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(-strength);
+            } else {
+                velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(0, 0, 0);
+            }
         }
 
         gl.setRenderTarget(velocityWrite.current);

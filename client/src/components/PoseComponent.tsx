@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useState} from 'react';
+import React, {useRef, useEffect} from 'react';
 import { Pose, POSE_CONNECTIONS, Results } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import * as drawingUtils from '@mediapipe/drawing_utils';
@@ -10,13 +10,16 @@ const labelColors: Record<string, string> = {
     neutral: '#8a8a8a',
 };
 
-const PoseDetection: React.FC = () => {
+type PoseDetectionProps = {
+    label: string;
+    setLabel: (label: string) => void;
+};
+
+function PoseDetection( {label, setLabel}: PoseDetectionProps) {
     // Refs to HTML elements
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const modelRef = useRef<GraphModel | null>(null);
-
-    const [label, setLabel] = useState<string>('neutral');
 
     useEffect(() => {
         if (!videoRef.current || !canvasRef.current) return;
@@ -63,9 +66,9 @@ const PoseDetection: React.FC = () => {
             // 3. Draw the pose skeleton
             if (results.poseLandmarks) {
                 drawingUtils.drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS,
-                    { color: '#00FF00', lineWidth: 4 });
+                    {color: '#00FF00', lineWidth: 4});
                 drawingUtils.drawLandmarks(ctx, results.poseLandmarks,
-                    { color: '#FF0000', lineWidth: 2 });
+                    {color: '#FF0000', lineWidth: 2});
             }
 
             // 4. For classification, you can log or store these landmarks
@@ -94,7 +97,7 @@ const PoseDetection: React.FC = () => {
         const camera = new Camera(videoRef.current, {
             onFrame: async () => {
                 // Send the frame to Pose for inference
-                await pose.send({ image: videoRef.current! });
+                await pose.send({image: videoRef.current!});
             },
             width: 640,
             height: 480,
@@ -130,6 +133,6 @@ const PoseDetection: React.FC = () => {
             />
         </div>
     );
-};
+}
 
 export default PoseDetection;
