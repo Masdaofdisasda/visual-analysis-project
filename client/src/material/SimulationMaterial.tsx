@@ -4,9 +4,10 @@ import * as THREE from "three";
 import {shaderMaterial} from "@react-three/drei";
 
 import simulationVertexShader from '../shaders/simulationVertex.glsl?raw';
-import simulationFragmentShader from '../shaders/simulationFragment.glsl?raw';
+import posSimulationFragmentShader from '../shaders/positionSimulationFragment.glsl?raw';
+import velSimulationFragmentShader from '../shaders/velocitySimulationFragment.glsl?raw';
 
-function getRandomData(width: number, height: number) {
+export function getRandomData(width: number, height: number) {
     // we need to create a vec4 since we're passing the positions to the fragment shader
     // data textures need to have 4 components, R, G, B, and A
     const length = width * height * 4
@@ -28,22 +29,34 @@ function getRandomData(width: number, height: number) {
     return data;
 }
 
-function createPositionSimulationMaterial(size: number) {
-    const bufferTexture = new THREE.DataTexture(
-        getRandomData(size, size),
-        size,
-        size,
-        THREE.RGBAFormat,
-        THREE.FloatType
-    );
-    bufferTexture.needsUpdate = true;
+export function getZeroVelocityData(width: number, height: number) {
+    const length = width * height * 4;
+    const data = new Float32Array(length);
+    for (let i = 0; i < length; i += 4) {
+        data[i + 0] = 0; // vx
+        data[i + 1] = 0; // vy
+        data[i + 2] = 0; // vz
+        data[i + 3] = 1; // unused or damping
+    }
+    return data;
+}
 
+function createPositionSimulationMaterial(texPositions: THREE.Texture, texVelocities: THREE.Texture) {
     return shaderMaterial( {
-        texBuffer: bufferTexture,
-        uFrequency: 0.25,
+        texPositions: texPositions,
+        texVelocities: texVelocities,
         uDeltaTime: 0,
-    },  simulationVertexShader, simulationFragmentShader)
+    },  simulationVertexShader, posSimulationFragmentShader)
+}
+
+function createVelocitySimulationMaterial(texPositions: THREE.Texture, texVelocities: THREE.Texture) {
+    return shaderMaterial( {
+        texPositions: texPositions,
+        texVelocities: texVelocities,
+        uDeltaTime: 0,
+        uGlobalForce: new THREE.Vector3(0, 0, 0),
+    },  simulationVertexShader, velSimulationFragmentShader)
 }
 
 
-export { createPositionSimulationMaterial };
+export { createPositionSimulationMaterial, createVelocitySimulationMaterial };

@@ -2,15 +2,38 @@ import {createPortal, extend, useFrame} from "@react-three/fiber";
 import {useMemo, useRef} from "react";
 import * as THREE from "three";
 import {useFBO} from "@react-three/drei";
-import {createPositionSimulationMaterial} from "../material/SimulationMaterial.tsx";
+import {
+    createPositionSimulationMaterial,
+    createVelocitySimulationMaterial, getRandomData,
+    getZeroVelocityData
+} from "../material/SimulationMaterial.tsx";
 import {createDisplayMaterial} from "../material/DisplayMaterial.tsx";
 
 const SIZE = 1024;
 
-const PositionSimulationMaterial = createPositionSimulationMaterial(SIZE);
+const texPositions = new THREE.DataTexture(
+    getRandomData(SIZE, SIZE),
+    SIZE,
+    SIZE,
+    THREE.RGBAFormat,
+    THREE.FloatType
+);
+texPositions.needsUpdate = true;
+const texVelocities = new THREE.DataTexture(
+    getZeroVelocityData(SIZE, SIZE),
+    SIZE,
+    SIZE,
+    THREE.RGBAFormat,
+    THREE.FloatType
+);
+texVelocities.needsUpdate = true;
+
+const PositionSimulationMaterial = createPositionSimulationMaterial(texPositions, texVelocities);
+const VelocitySimulationMaterial = createVelocitySimulationMaterial(texPositions, texVelocities);
 const DisplayMaterial = createDisplayMaterial();
 
 extend({ PositionSimulationMaterial });
+extend({ VelocitySimulationMaterial });
 extend({ DisplayMaterial });
 
 type FboParticlesProps = {
@@ -20,8 +43,10 @@ type FboParticlesProps = {
 function FboParticles({ size = SIZE }: FboParticlesProps) {
     const particleMaterialRef = useRef<THREE.ShaderMaterial>(null);
     const positionSimulationMaterialRef = useRef<THREE.ShaderMaterial>(null);
+    const velocitySimulationMaterialRef = useRef<THREE.ShaderMaterial>(null);
 
-    const simulationScene = useMemo(() => new THREE.Scene(), []);
+    const positionScene = useMemo(() => new THREE.Scene(), []);
+    const velocityScene = useMemo(() => new THREE.Scene(), []);
     const simulationCamera = useMemo(
         () =>
             new THREE.OrthographicCamera(-1, 1, 1, -1, 1 / Math.pow(2, 53), 1),
@@ -100,36 +125,51 @@ function FboParticles({ size = SIZE }: FboParticlesProps) {
         return particles;
     }, [size]);
 
-    useFrame((state, delta) => {
-        const { gl } = state;
-
+    useFrame(({ gl }, delta) => {
         // (1) Set simulation uniforms
+
+        if (velocitySimulationMaterialRef.current) {
+            velocitySimulationMaterialRef.current.uniforms.uDeltaTime.value = delta;
+            velocitySimulationMaterialRef.current.uniforms.uGlobalForce.value = new THREE.Vector3(0, 0, 0);
+        }
+
+        gl.setRenderTarget(velocityWrite.current);
+        gl.clear();
+        gl.render(velocityScene, simulationCamera);
+
         if (positionSimulationMaterialRef.current) {
             positionSimulationMaterialRef.current.uniforms.uDeltaTime.value = delta;
         }
 
-        // (2) Render the offscreen (simulation) pass → writeTarget
         gl.setRenderTarget(positionWrite.current);
         gl.clear();
-        gl.render(simulationScene, simulationCamera);
+        gl.render(positionScene, simulationCamera);
         gl.setRenderTarget(null);
 
-        // (3) Use writeTarget’s updated texture in the display pass
         if (particleMaterialRef.current && particleMaterialRef.current.uniforms?.texPositions) {
                 particleMaterialRef.current.uniforms.texPositions.value = positionWrite.current.texture;
         }
 
-        if (positionSimulationMaterialRef.current) {
-            positionSimulationMaterialRef.current.uniforms.texBuffer.value = positionWrite.current.texture;
+        if (velocitySimulationMaterialRef.current) {
+            velocitySimulationMaterialRef.current.uniforms.texPositions.value = positionWrite.current.texture;
+            velocitySimulationMaterialRef.current.uniforms.texVelocities.value = velocityWrite.current.texture;
         }
 
-        const temp = positionRead.current;
+        if (positionSimulationMaterialRef.current) {
+            positionSimulationMaterialRef.current.uniforms.texPositions.value = positionWrite.current.texture;
+            positionSimulationMaterialRef.current.uniforms.texVelocities.value = velocityWrite.current.texture;
+        }
+
+        let temp = positionRead.current;
         positionRead.current = positionWrite.current;
         positionWrite.current = temp;
+        temp = velocityRead.current;
+        velocityRead.current = velocityWrite.current;
+        velocityWrite.current = temp;
 
     });
 
-    const simulationPass = createPortal(
+    const posSimulationPass = createPortal(
         <mesh>
             <positionSimulationMaterial ref={positionSimulationMaterialRef} args={[size]}/>
             <bufferGeometry>
@@ -147,7 +187,27 @@ function FboParticles({ size = SIZE }: FboParticlesProps) {
                 />
             </bufferGeometry>
         </mesh>,
-        simulationScene
+        positionScene
+    )
+    const velSimulationPass = createPortal(
+        <mesh>
+            <velocitySimulationMaterial ref={velocitySimulationMaterialRef} args={[size]}/>
+            <bufferGeometry>
+                <bufferAttribute
+                    attach="attributes-position"
+                    count={positions.length / 3}
+                    array={positions}
+                    itemSize={3}
+                />
+                <bufferAttribute
+                    attach="attributes-uv"
+                    count={uvs.length / 2}
+                    array={uvs}
+                    itemSize={2}
+                />
+            </bufferGeometry>
+        </mesh>,
+        velocityScene
     )
 
     const particlePass = <points>
@@ -169,7 +229,8 @@ function FboParticles({ size = SIZE }: FboParticlesProps) {
 
     return (
         <group>
-            {simulationPass}
+            {velSimulationPass}
+            {posSimulationPass}
             {particlePass}
         </group>
     );
