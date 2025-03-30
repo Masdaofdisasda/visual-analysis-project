@@ -1,4 +1,4 @@
-import {createPortal, extend, useFrame} from "@react-three/fiber";
+import {createPortal, useFrame} from "@react-three/fiber";
 import {useMemo, useRef} from "react";
 import * as THREE from "three";
 import {useFBO} from "@react-three/drei";
@@ -32,19 +32,24 @@ const PositionSimulationMaterial = createPositionSimulationMaterial(texPositions
 const VelocitySimulationMaterial = createVelocitySimulationMaterial(texPositions, texVelocities);
 const DisplayMaterial = createDisplayMaterial();
 
-extend({ PositionSimulationMaterial });
-extend({ VelocitySimulationMaterial });
-extend({ DisplayMaterial });
-
 type FboParticlesProps = {
     size: number;
     label: string;
 }
 
 function FboParticles({ size = SIZE, label }: FboParticlesProps) {
-    const particleMaterialRef = useRef<THREE.ShaderMaterial>(null);
-    const positionSimulationMaterialRef = useRef<THREE.ShaderMaterial>(null);
-    const velocitySimulationMaterialRef = useRef<THREE.ShaderMaterial>(null);
+    const velocitySimulationShader = useMemo(
+        () => new VelocitySimulationMaterial(size), [size]);
+    const positionSimulationShader = useMemo(
+        () => new PositionSimulationMaterial(size), [size]);
+    const particleShader = useMemo(() =>
+    {
+        const shaderMaterial = new DisplayMaterial()
+        shaderMaterial.blending = THREE.AdditiveBlending;
+        shaderMaterial.depthTest = false;
+
+        return shaderMaterial;
+    }, []);
 
     const positionScene = useMemo(() => new THREE.Scene(), []);
     const velocityScene = useMemo(() => new THREE.Scene(), []);
@@ -128,45 +133,35 @@ function FboParticles({ size = SIZE, label }: FboParticlesProps) {
 
     useFrame(({ gl }, delta) => {
         // (1) Set simulation uniforms
-        if (velocitySimulationMaterialRef.current) {
-            velocitySimulationMaterialRef.current.uniforms.uDeltaTime.value = delta;
+        velocitySimulationShader.uDeltaTime = delta;
 
-            const strength = 0.7;
-            if (label === 'left') {
-                velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(strength);
-            } else if (label === 'right') {
-                velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(-strength);
-            } else {
-                velocitySimulationMaterialRef.current.uniforms.uForce.value = new THREE.Vector3(0, 0, 0);
-            }
+        const strength = 0.7;
+        if (label === 'left') {
+            velocitySimulationShader.uForce = new THREE.Vector3(strength);
+        } else if (label === 'right') {
+            velocitySimulationShader.uForce = new THREE.Vector3(-strength);
+        } else {
+            velocitySimulationShader.uForce = new THREE.Vector3(0, 0, 0);
         }
 
         gl.setRenderTarget(velocityWrite.current);
         gl.clear();
         gl.render(velocityScene, simulationCamera);
 
-        if (positionSimulationMaterialRef.current) {
-            positionSimulationMaterialRef.current.uniforms.uDeltaTime.value = delta;
-        }
+        positionSimulationShader.uDeltaTime = delta;
 
         gl.setRenderTarget(positionWrite.current);
         gl.clear();
         gl.render(positionScene, simulationCamera);
         gl.setRenderTarget(null);
 
-        if (particleMaterialRef.current && particleMaterialRef.current.uniforms?.texPositions) {
-                particleMaterialRef.current.uniforms.texPositions.value = positionWrite.current.texture;
-        }
+        particleShader.texPositions = positionWrite.current.texture;
 
-        if (velocitySimulationMaterialRef.current) {
-            velocitySimulationMaterialRef.current.uniforms.texPositions.value = positionWrite.current.texture;
-            velocitySimulationMaterialRef.current.uniforms.texVelocities.value = velocityWrite.current.texture;
-        }
+        velocitySimulationShader.texPositions = positionWrite.current.texture;
+        velocitySimulationShader.texVelocities = velocityWrite.current.texture;
 
-        if (positionSimulationMaterialRef.current) {
-            positionSimulationMaterialRef.current.uniforms.texPositions.value = positionWrite.current.texture;
-            positionSimulationMaterialRef.current.uniforms.texVelocities.value = velocityWrite.current.texture;
-        }
+        positionSimulationShader.texPositions = positionWrite.current.texture;
+        positionSimulationShader.texVelocities = velocityWrite.current.texture;
 
         let temp = positionRead.current;
         positionRead.current = positionWrite.current;
@@ -179,7 +174,7 @@ function FboParticles({ size = SIZE, label }: FboParticlesProps) {
 
     const posSimulationPass = createPortal(
         <mesh>
-            <positionSimulationMaterial ref={positionSimulationMaterialRef} args={[size]}/>
+            <primitive object={positionSimulationShader} attach="material" />
             <bufferGeometry>
                 <bufferAttribute
                     attach="attributes-position"
@@ -199,7 +194,7 @@ function FboParticles({ size = SIZE, label }: FboParticlesProps) {
     )
     const velSimulationPass = createPortal(
         <mesh>
-            <velocitySimulationMaterial ref={velocitySimulationMaterialRef} args={[size]}/>
+            <primitive object={velocitySimulationShader} attach="material" />
             <bufferGeometry>
                 <bufferAttribute
                     attach="attributes-position"
@@ -218,22 +213,19 @@ function FboParticles({ size = SIZE, label }: FboParticlesProps) {
         velocityScene
     )
 
-    const particlePass = <points>
-        <bufferGeometry>
-            <bufferAttribute
-                attach="attributes-position"
-                count={particlesPosition.length / 3}
-                array={particlesPosition}
-                itemSize={3}
-            />
-        </bufferGeometry>
-        <displayMaterial
-            ref={particleMaterialRef}
-            blending={THREE.AdditiveBlending}
-            depthTest={false}
-            attach="material"
-        />
-    </points>
+    const particlePass = useMemo(() => {
+        return (<points>
+            <bufferGeometry>
+                <bufferAttribute
+                    attach="attributes-position"
+                    count={particlesPosition.length / 3}
+                    array={particlesPosition}
+                    itemSize={3}
+                />
+            </bufferGeometry>
+            <primitive object={particleShader} attach="material" />
+        </points>);
+    }, [particlesPosition, particleShader]);
 
     return (
         <group>

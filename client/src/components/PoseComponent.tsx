@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from 'react';
+import {useRef, useEffect} from 'react';
 import { Pose, POSE_CONNECTIONS, Results } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
 import * as drawingUtils from '@mediapipe/drawing_utils';
