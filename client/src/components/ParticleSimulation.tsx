@@ -9,35 +9,33 @@ import {
 } from "../material/SimulationMaterial.tsx";
 import {createDisplayMaterial} from "../material/DisplayMaterial.tsx";
 
-const SIZE = 1024;
-
-const texPositions = new THREE.DataTexture(
-    getPositionData(SIZE, SIZE),
-    SIZE,
-    SIZE,
-    THREE.RGBAFormat,
-    THREE.FloatType
-);
-texPositions.needsUpdate = true;
-const texVelocities = new THREE.DataTexture(
-    getVelocityData(SIZE, SIZE),
-    SIZE,
-    SIZE,
-    THREE.RGBAFormat,
-    THREE.FloatType
-);
-texVelocities.needsUpdate = true;
-
-const PositionSimulationMaterial = createPositionSimulationMaterial(texPositions, texVelocities);
-const VelocitySimulationMaterial = createVelocitySimulationMaterial(texPositions, texVelocities);
-const DisplayMaterial = createDisplayMaterial();
-
-type FboParticlesProps = {
+type ParticleSimulationProps = {
     size: number;
     label: string;
 }
 
-function FboParticles({ size = SIZE, label }: FboParticlesProps) {
+function ParticleSimulation({ size, label }: ParticleSimulationProps) {
+    const texPositions = new THREE.DataTexture(
+        getPositionData(size, size),
+        size,
+        size,
+        THREE.RGBAFormat,
+        THREE.FloatType
+    );
+    texPositions.needsUpdate = true;
+    const texVelocities = new THREE.DataTexture(
+        getVelocityData(size, size),
+        size,
+        size,
+        THREE.RGBAFormat,
+        THREE.FloatType
+    );
+    texVelocities.needsUpdate = true;
+
+    const PositionSimulationMaterial = createPositionSimulationMaterial(texPositions, texVelocities);
+    const VelocitySimulationMaterial = createVelocitySimulationMaterial(texPositions, texVelocities);
+    const DisplayMaterial = createDisplayMaterial();
+
     const velocitySimulationShader = useMemo(
         () => new VelocitySimulationMaterial(size), [size]);
     const positionSimulationShader = useMemo(
@@ -226,4 +224,4 @@ function FboParticles({ size = SIZE, label }: FboParticlesProps) {
     );
 }
 
-export default FboParticles
+export default ParticleSimulation
