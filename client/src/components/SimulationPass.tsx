@@ -1,6 +1,6 @@
 import {createPortal, useFrame} from "@react-three/fiber";
 import * as THREE from "three";
-import {useMemo} from "react";
+import {ReactElement, useMemo} from "react";
 import {
     createPositionSimulationMaterial,
     createVelocitySimulationMaterial,
@@ -18,7 +18,7 @@ type SimulationPassProps = {
 
 function SimulationPass(
     { size, label, setParticleTexture }: SimulationPassProps
-) {
+): ReactElement {
     const texPositions = new THREE.DataTexture(
         getPositionData(size, size),
         size,

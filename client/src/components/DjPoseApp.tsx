@@ -3,7 +3,7 @@ import {Canvas} from "@react-three/fiber";
 import {Perf} from "r3f-perf";
 import ParticleSimulation from "./ParticleSimulation.tsx";
 import {OrbitControls} from "@react-three/drei";
-import PoseComponent from "./PoseComponent.tsx";
+import PoseComponent from "./PoseDetection.tsx";
 
 const PARTICLE_COUNT = 1024; // actual number of particles is 1024 * 1024
 
