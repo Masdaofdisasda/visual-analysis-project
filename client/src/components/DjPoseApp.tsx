@@ -4,6 +4,7 @@ import {Perf} from "r3f-perf";
 import ParticleSimulation from "./ParticleSimulation.tsx";
 import {OrbitControls} from "@react-three/drei";
 import PoseComponent from "./PoseDetection.tsx";
+import * as THREE from "three";
 
 const PARTICLE_COUNT = 1024; // actual number of particles is 1024 * 1024
 
@@ -30,7 +31,7 @@ function DjPoseApp() {
     return (
         <div className={"h-screen w-screen"}>
             <Canvas
-                camera={{ position: [1.0, 1.0, 0.5] }}
+                camera={{ position: [0.0, 0.0, 2.0] }}
             >
                 <Perf position="top-left" style={{ opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s' }} />
                 <ambientLight intensity={0.5} />

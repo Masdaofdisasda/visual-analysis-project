@@ -13,7 +13,7 @@ type PoseDetectionProps = {
     isDebug: boolean;
 };
 
-function PoseDetection({ setDetectedLabel, isDebug }: PoseDetectionProps) {
+function PoseDetection({ setDetectedLabel, isDebug}: PoseDetectionProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const detectedLabel = usePoseEstimation(videoRef, canvasRef);

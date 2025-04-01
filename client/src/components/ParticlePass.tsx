@@ -1,6 +1,6 @@
 import {ReactElement, RefObject, useMemo} from "react";
-import {createParticleMaterial} from "../material/ParticelMaterial.tsx";
 import * as THREE from "three";
+import {createParticleMaterial} from "../material/ParticleMaterial.tsx";
 
 export type ParticlePassProps = {
     size: number;
