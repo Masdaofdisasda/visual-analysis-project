@@ -12,7 +12,7 @@ export type Label = 'neutral' | 'left' | 'right';
 
 function DjPoseApp() {
     const [detectedLabel, setDetectedLabel] = useState<Label>("neutral");
-    const [isDebug, setIsDebug] = useState(true);
+    const [isDebug, setIsDebug] = useState(false);
 
     useEffect(() => {
         const handleKeyPress = (event: KeyboardEvent) => {
