@@ -1,8 +1,8 @@
-import {useMemo} from "react";
+import {useRef} from "react";
 import * as THREE from "three";
-import {createDisplayMaterial} from "../material/DisplayMaterial.tsx";
 import SimulationPass from "./SimulationPass.tsx";
 import {Label} from "./DjPoseApp.tsx";
+import ParticlePass from "./ParticlePass.tsx";
 
 type ParticleSimulationProps = {
     size: number;
@@ -10,49 +10,17 @@ type ParticleSimulationProps = {
 }
 
 function ParticleSimulation({ size, label }: ParticleSimulationProps) {
-const DisplayMaterial = createDisplayMaterial();
+    const particleMaterialRef = useRef<THREE.ShaderMaterial & {texPositions: THREE.Texture | null}>(null);
 
-    const particleShader = useMemo(() =>
-    {
-        const shaderMaterial = new DisplayMaterial()
-        shaderMaterial.blending = THREE.AdditiveBlending;
-        shaderMaterial.depthTest = false;
-
-        return shaderMaterial;
-    }, [DisplayMaterial]);
-
-    function setParticleTexture(texture: THREE.Texture) {
-        particleShader.texPositions = texture;
+    function onUpdateParticles(texture: THREE.Texture) {
+        if (!particleMaterialRef.current) return;
+        particleMaterialRef.current.texPositions = texture;
     }
-
-    const particlesPosition = useMemo(() => {
-        const length = size * size;
-        const particles = new Float32Array(length * 3);
-        for (let i = 0; i < length; i++) {
-            const i3 = i * 3;
-            particles[i3 + 0] = (i % size) / size;
-            particles[i3 + 1] = i / (size * size);
-            particles[i3 + 2] = 0;
-        }
-        return particles;
-    }, [size]);
-
-    const particlePass = useMemo(() => {
-        return (<points>
-            <bufferGeometry>
-                <bufferAttribute
-                    attach="attributes-position"
-                    args={[particlesPosition, 3]}
-                />
-            </bufferGeometry>
-            <primitive object={particleShader} attach="material" />
-        </points>);
-    }, [particlesPosition, particleShader]);
 
     return (
         <group>
-            <SimulationPass size={size} label={label} setParticleTexture={setParticleTexture} />
-            {particlePass}
+            <SimulationPass size={size} label={label} setParticleTexture={onUpdateParticles} />
+            <ParticlePass size={size} ref={particleMaterialRef} />
         </group>
     );
 }

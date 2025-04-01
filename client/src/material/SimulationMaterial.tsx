@@ -7,7 +7,7 @@ import simulationVertexShader from '../shaders/simulationVertex.glsl?raw';
 import posSimulationFragmentShader from '../shaders/positionSimulationFragment.glsl?raw';
 import velSimulationFragmentShader from '../shaders/velocitySimulationFragment.glsl?raw';
 
-export function getPositionData(width: number, height: number, radius = 2) {
+export function getPositionData(width: number, height: number, radius = 2, maxLife = 10) {
     const length = width * height * 4;
     const data = new Float32Array(length);
 
@@ -24,7 +24,7 @@ export function getPositionData(width: number, height: number, radius = 2) {
         data[i + 0] = r * sinTheta * Math.cos(phi); // x
         data[i + 1] = r * sinTheta * Math.sin(phi); // y
         data[i + 2] = r * Math.cos(theta);          // z
-        data[i + 3] = 1.0;                          // w (unused)
+        data[i + 3] = Math.random() * maxLife;      // w (lifetime)
     }
 
     return data;
@@ -50,6 +50,8 @@ function createPositionSimulationMaterial(texPositions: THREE.Texture, texVeloci
         texPositions: texPositions,
         texVelocities: texVelocities,
         uDeltaTime: 0,
+        uTime: 0,
+        uMaxLife: 10,
     },  simulationVertexShader, posSimulationFragmentShader)
 }
 
@@ -59,8 +61,9 @@ function createVelocitySimulationMaterial(texPositions: THREE.Texture, texVeloci
         texVelocities: texVelocities,
         uDeltaTime: 0,
         uForce: new THREE.Vector3(0, 0, 0),
-        uDamping: 0.2,
+        uDamping: 0.99,
         uBoundaryRadius: 2.0,
+        uCurlStrength: 1.0
     },  simulationVertexShader, velSimulationFragmentShader)
 }
 

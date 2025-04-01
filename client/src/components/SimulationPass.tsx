@@ -1,13 +1,14 @@
 import {createPortal, useFrame} from "@react-three/fiber";
 import * as THREE from "three";
-import {useMemo, useRef} from "react";
-import {useFBO} from "@react-three/drei";
+import {ReactElement, useMemo} from "react";
 import {
     createPositionSimulationMaterial,
     createVelocitySimulationMaterial,
     getPositionData, getVelocityData
 } from "../material/SimulationMaterial.tsx";
 import {Label} from "./DjPoseApp.tsx";
+import useQuadGeometry from "../hooks/useQuadGeometry.tsx";
+import usePingPongTexture from "../hooks/usePingPongTexture.tsx";
 
 type SimulationPassProps = {
     size: number;
@@ -16,8 +17,8 @@ type SimulationPassProps = {
 }
 
 function SimulationPass(
-    { size, label, setParticleTexture }: SimulationPassProps
-) {
+    { size, label, setParticleTexture}: SimulationPassProps
+): ReactElement {
     const texPositions = new THREE.DataTexture(
         getPositionData(size, size),
         size,
@@ -50,74 +51,21 @@ function SimulationPass(
         []
     );
 
-    // Geometry arrays
-    const positions = useMemo(
-        () =>
-            new Float32Array([
-                -1, -1, 0,
-                1, -1, 0,
-                1,  1, 0,
-                -1, -1, 0,
-                1,  1, 0,
-                -1,  1, 0,
-            ]),
-        []
-    );
+    const { positions, uvs } = useQuadGeometry();
+    const { readTarget: positionRead, writeTarget: positionWrite, swap: swapPosition } = usePingPongTexture(size);
+    const { readTarget: velocityRead, writeTarget: velocityWrite, swap: swapVelocity } = usePingPongTexture(size);
 
-    const uvs = useMemo(
-        () =>
-            new Float32Array([
-                0, 0, // bottom-left
-                1, 0, // bottom-right
-                1, 1, // top-right
-                0, 0, // bottom-left
-                1, 1, // top-right
-                0, 1, // top-left
-            ]),
-        []
-    );
-
-    const positionRT_A = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const positionsRT_B = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const velocityRT_A = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const velocityRT_B = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const positionRead = useRef(positionRT_A);
-    const positionWrite = useRef(positionsRT_B);
-    const velocityRead = useRef(velocityRT_A);
-    const velocityWrite = useRef(velocityRT_B);
-
-    useFrame(({ gl }, delta) => {
+    function computeVelocitySimulation(delta: number, gl: THREE.WebGLRenderer) {
         velocitySimulationShader.uDeltaTime = delta;
-
-        const strength = 0.7;
+        if (delta > 0) { // for the first frame the initial data texture is already set
+            velocitySimulationShader.texPositions = positionRead.current.texture;
+            velocitySimulationShader.texVelocities = velocityRead.current.texture;
+        }
+        const strength = 0.2;
         if (label === 'left') {
-            velocitySimulationShader.uForce = new THREE.Vector3(strength);
+            velocitySimulationShader.uForce = new THREE.Vector3(0, 0, strength);
         } else if (label === 'right') {
-            velocitySimulationShader.uForce = new THREE.Vector3(-strength);
+            velocitySimulationShader.uForce = new THREE.Vector3(0, 0, -strength);
         } else {
             velocitySimulationShader.uForce = new THREE.Vector3(0, 0, 0);
         }
@@ -125,30 +73,31 @@ function SimulationPass(
         gl.setRenderTarget(velocityWrite.current);
         gl.clear();
         gl.render(velocityScene, simulationCamera);
+    }
 
+    function computePositionSimulation(
+        delta: number, time: number, gl: THREE.WebGLRenderer
+    ) {
         positionSimulationShader.uDeltaTime = delta;
+        positionSimulationShader.uTime = time;
+        if (delta > 0) { // for the first frame the initial data texture is already set
+            positionSimulationShader.texPositions = positionRead.current.texture;
+            positionSimulationShader.texVelocities = velocityRead.current.texture;
+        }
 
         gl.setRenderTarget(positionWrite.current);
         gl.clear();
         gl.render(positionScene, simulationCamera);
-        gl.setRenderTarget(null);
+    }
 
-        //particleShader.texPositions = positionWrite.current.texture;
+    useFrame(({ gl, clock }, delta) => {
+        computeVelocitySimulation(delta, gl);
+        computePositionSimulation(delta, clock.elapsedTime, gl);
+        gl.setRenderTarget(null);
         setParticleTexture(positionWrite.current.texture);
 
-        velocitySimulationShader.texPositions = positionWrite.current.texture;
-        velocitySimulationShader.texVelocities = velocityWrite.current.texture;
-
-        positionSimulationShader.texPositions = positionWrite.current.texture;
-        positionSimulationShader.texVelocities = velocityWrite.current.texture;
-
-        let temp = positionRead.current;
-        positionRead.current = positionWrite.current;
-        positionWrite.current = temp;
-        temp = velocityRead.current;
-        velocityRead.current = velocityWrite.current;
-        velocityWrite.current = temp;
-
+        swapPosition();
+        swapVelocity();
     });
 
     const posSimulationPass = createPortal(

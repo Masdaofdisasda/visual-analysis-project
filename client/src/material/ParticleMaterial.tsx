@@ -5,10 +5,11 @@ import * as THREE from "three";
 import vertexShader from '../shaders/particleVertex.glsl?raw';
 import fragmentShader from '../shaders/particleFragment.glsl?raw';
 
-function createDisplayMaterial() {
+function createParticleMaterial() {
     return shaderMaterial( {
-        texPositions:  null as THREE.Texture | null
+        texPositions:  null as THREE.Texture | null,
+        uMaxLife: 10
     },  vertexShader, fragmentShader)
 }
 
-export { createDisplayMaterial };
+export { createParticleMaterial };
