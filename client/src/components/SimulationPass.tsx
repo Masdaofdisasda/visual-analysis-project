@@ -1,13 +1,14 @@
 import {createPortal, useFrame} from "@react-three/fiber";
 import * as THREE from "three";
-import {useMemo, useRef} from "react";
-import {useFBO} from "@react-three/drei";
+import {useMemo} from "react";
 import {
     createPositionSimulationMaterial,
     createVelocitySimulationMaterial,
     getPositionData, getVelocityData
 } from "../material/SimulationMaterial.tsx";
 import {Label} from "./DjPoseApp.tsx";
+import useQuadGeometry from "../hooks/useQuadGeometry.tsx";
+import usePingPongTexture from "../hooks/usePingPongTexture.tsx";
 
 type SimulationPassProps = {
     size: number;
@@ -39,9 +40,10 @@ function SimulationPass(
     const VelocitySimulationMaterial = createVelocitySimulationMaterial(texPositions, texVelocities);
 
     const velocitySimulationShader = useMemo(
-        () => new VelocitySimulationMaterial(size), [size]);
+        () => new VelocitySimulationMaterial(size), [VelocitySimulationMaterial, size]);
     const positionSimulationShader = useMemo(
-        () => new PositionSimulationMaterial(size), [size]);
+        () => new PositionSimulationMaterial(size), [PositionSimulationMaterial, size]);
+
     const positionScene = useMemo(() => new THREE.Scene(), []);
     const velocityScene = useMemo(() => new THREE.Scene(), []);
     const simulationCamera = useMemo(
@@ -49,66 +51,10 @@ function SimulationPass(
             new THREE.OrthographicCamera(-1, 1, 1, -1, 1 / Math.pow(2, 53), 1),
         []
     );
+    const { positions, uvs } = useQuadGeometry();
 
-    // Geometry arrays
-    const positions = useMemo(
-        () =>
-            new Float32Array([
-                -1, -1, 0,
-                1, -1, 0,
-                1,  1, 0,
-                -1, -1, 0,
-                1,  1, 0,
-                -1,  1, 0,
-            ]),
-        []
-    );
-
-    const uvs = useMemo(
-        () =>
-            new Float32Array([
-                0, 0, // bottom-left
-                1, 0, // bottom-right
-                1, 1, // top-right
-                0, 0, // bottom-left
-                1, 1, // top-right
-                0, 1, // top-left
-            ]),
-        []
-    );
-
-    const positionRT_A = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const positionsRT_B = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const velocityRT_A = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const velocityRT_B = useFBO(size, size, {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        format: THREE.RGBAFormat,
-        stencilBuffer: false,
-        type: THREE.FloatType,
-    });
-    const positionRead = useRef(positionRT_A);
-    const positionWrite = useRef(positionsRT_B);
-    const velocityRead = useRef(velocityRT_A);
-    const velocityWrite = useRef(velocityRT_B);
+    const { readTarget: positionRead, writeTarget: positionWrite, swap: swapPositions } = usePingPongTexture(size);
+    const { writeTarget: velocityWrite, swap: swapVelocities } = usePingPongTexture(size);
 
     useFrame(({ gl }, delta) => {
         velocitySimulationShader.uDeltaTime = delta;
@@ -133,8 +79,7 @@ function SimulationPass(
         gl.render(positionScene, simulationCamera);
         gl.setRenderTarget(null);
 
-        //particleShader.texPositions = positionWrite.current.texture;
-        setParticleTexture(positionWrite.current.texture);
+        setParticleTexture(positionRead.current.texture);
 
         velocitySimulationShader.texPositions = positionWrite.current.texture;
         velocitySimulationShader.texVelocities = velocityWrite.current.texture;
@@ -142,12 +87,8 @@ function SimulationPass(
         positionSimulationShader.texPositions = positionWrite.current.texture;
         positionSimulationShader.texVelocities = velocityWrite.current.texture;
 
-        let temp = positionRead.current;
-        positionRead.current = positionWrite.current;
-        positionWrite.current = temp;
-        temp = velocityRead.current;
-        velocityRead.current = velocityWrite.current;
-        velocityWrite.current = temp;
+        swapPositions();
+        swapVelocities();
 
     });
 
