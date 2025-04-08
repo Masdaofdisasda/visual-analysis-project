@@ -3,16 +3,15 @@ import {Canvas} from "@react-three/fiber";
 import {Perf} from "r3f-perf";
 import ParticleSimulation from "./ParticleSimulation.tsx";
 import {OrbitControls} from "@react-three/drei";
-import PoseComponent from "./PoseDetection.tsx";
+import usePoseDetection from "../hooks/usePoseDetection.tsx";
 
 const PARTICLE_COUNT = 1024; // actual number of particles is 1024 * 1024
 
-// TODO derive labels from labelmap.json
 export type Label = 'neutral' | 'left' | 'right';
 
 function DjPoseApp() {
-    const [detectedLabel, setDetectedLabel] = useState<Label>("neutral");
     const [isDebug, setIsDebug] = useState(false);
+    const { detectedLabel, debugOverlay} = usePoseDetection(isDebug);
 
     useEffect(() => {
         const handleKeyPress = (event: KeyboardEvent) => {
@@ -37,7 +36,7 @@ function DjPoseApp() {
                 <ParticleSimulation size={PARTICLE_COUNT} label={detectedLabel} />
                 <OrbitControls />
             </Canvas>
-            <PoseComponent setDetectedLabel={setDetectedLabel} isDebug={isDebug} />
+            {debugOverlay}
             <div
                 className={"absolute bottom-1 right-1 opacity-10 text-white text-sm"}>
                 Press 'D' to toggle debug menu
