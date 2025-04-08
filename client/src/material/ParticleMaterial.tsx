@@ -7,7 +7,8 @@ import fragmentShader from '../shaders/particleFragment.glsl?raw';
 
 function createParticleMaterial() {
     return shaderMaterial( {
-        texPositions:  null as THREE.Texture | null
+        texPositions:  null as THREE.Texture | null,
+        uMaxLife: 10
     },  vertexShader, fragmentShader)
 }
 

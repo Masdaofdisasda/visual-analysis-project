@@ -4,7 +4,6 @@ import {useRef} from "react";
 
 function usePingPongTexture(
     size: number,
-
 ) {
     const renderTargetA = useFBO(size, size, {
         minFilter: THREE.NearestFilter,

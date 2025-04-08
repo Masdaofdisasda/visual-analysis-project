@@ -1,16 +1,17 @@
 uniform sampler2D texPositions;
-uniform float uTime;
+uniform float uMaxLife;
+
+varying float vLifeFrac; // pass to fragment
 
 void main() {
-  vec3 pos = texture2D(texPositions, position.xy).xyz;
+    vec4 posAge = texture2D(texPositions, position.xy);
+    vec3 pos = posAge.xyz;
+    float age = posAge.w;
 
-  vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
-  vec4 viewPosition = viewMatrix * modelPosition;
-  vec4 projectedPosition = projectionMatrix * viewPosition;
+    float lifeFrac = clamp(age / uMaxLife, 0.0, 1.0);
+    vLifeFrac = lifeFrac;
 
-  gl_Position = projectedPosition;
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(pos, 1.0);
 
-  gl_PointSize = 3.0;
-  // Size attenuation;
-  gl_PointSize *= step(1.0 - (1.0/64.0), position.x) + 0.5;
+    gl_PointSize = mix(3.0, 0.0, lifeFrac); // shrink to 0 at end of life
 }

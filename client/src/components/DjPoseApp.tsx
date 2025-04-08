@@ -30,7 +30,7 @@ function DjPoseApp() {
     return (
         <div className={"h-screen w-screen"}>
             <Canvas
-                camera={{ position: [1.0, 1.0, 0.5] }}
+                camera={{ position: [0.0, 0.0, 2.0] }}
             >
                 <Perf position="top-left" style={{ opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s' }} />
                 <ambientLight intensity={0.5} />
