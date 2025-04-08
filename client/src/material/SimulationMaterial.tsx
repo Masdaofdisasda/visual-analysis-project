@@ -60,9 +60,10 @@ function createVelocitySimulationMaterial(texPositions: THREE.Texture, texVeloci
         texPositions: texPositions,
         texVelocities: texVelocities,
         uDeltaTime: 0,
+        uMaxLife: 10,
         uForce: new THREE.Vector3(0, 0, 0),
         uDamping: 0.99,
-        uBoundaryRadius: 2.0,
+        uBoundaryRadius: 100.0,
         uCurlStrength: 1.0
     },  simulationVertexShader, velSimulationFragmentShader)
 }

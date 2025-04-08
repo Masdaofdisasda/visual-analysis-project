@@ -1,6 +1,7 @@
 uniform sampler2D texPositions;
 uniform sampler2D texVelocities;
 uniform float uDeltaTime;
+uniform float uMaxLife;         // maximum lifetime in seconds
 uniform vec3 uForce;         // external force
 uniform float uDamping;      // velocity damping factor
 uniform float uBoundaryRadius;
@@ -150,24 +151,34 @@ vec3 curlNoise( vec3 p ){
 }
 
 void main() {
-    vec3 pos = texture2D(texPositions, vUv).xyz;
+    vec4 posData = texture2D(texPositions, vUv);
+    vec3 pos = posData.xyz;
+    float age = posData.w;
     vec4 velData = texture2D(texVelocities, vUv);
     vec3 vel = velData.xyz;
 
-    // 1) Basic acceleration from external force
-    vec3 accel = uForce;
+    // Basic acceleration from external force
+    vec3 accel = vec3(0);
+    float justBorn = 0.2 * uMaxLife;
+    if (age > justBorn) {
+        accel = uForce;
+    }
 
-    // 2) Boundary check
+    // Curl noise acceleration
+    vec3 curlDir = normalize(curlNoise(pos));
+    accel = curlDir * uCurlStrength;
+
+    // Boundary check
     float dist = length(pos);
-    //if (dist > uBoundaryRadius) {
-    //  vec3 dirBack = -normalize(pos);
-    //  accel += dirBack * (dist - uBoundaryRadius) * 2.0;
-    //}
+    if (dist > uBoundaryRadius) {
+      vec3 dirBack = -normalize(pos);
+      accel += dirBack * (dist - uBoundaryRadius) * 2.0;
+    }
 
     // 3) Euler update velocity
     vel += accel * uDeltaTime;
 
-    vel += curlNoise(pos) * uCurlStrength * uDeltaTime;
+    vel = mix(vel, curlDir * length(vel), 0.2);
 
     // 4) Damping
     vel *= 1.0 - (uDamping * uDeltaTime);
