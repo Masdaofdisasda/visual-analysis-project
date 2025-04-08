@@ -1,15 +1,16 @@
-import {useRef} from "react";
+import {memo, RefObject, useRef} from "react";
 import * as THREE from "three";
 import SimulationPass from "./SimulationPass.tsx";
-import {Label} from "./DjPoseApp.tsx";
 import ParticlePass from "./ParticlePass.tsx";
+import {Label} from "./DjPoseApp.types.ts";
 
 export type ParticleSimulationProps = {
     size: number;
-    label: Label;
+    label: RefObject<Label>;
 }
 
-function ParticleSimulation({ size, label }: ParticleSimulationProps) {
+const ParticleSimulation = memo(
+    function ParticleSimulationComponent({ size, label }: ParticleSimulationProps) {
     const particleMaterialRef = useRef<THREE.ShaderMaterial & {texPositions: THREE.Texture | null}>(null);
 
     function onUpdateParticles(texture: THREE.Texture) {
@@ -23,6 +24,6 @@ function ParticleSimulation({ size, label }: ParticleSimulationProps) {
             <ParticlePass size={size} ref={particleMaterialRef} />
         </group>
     );
-}
+});
 
 export default ParticleSimulation

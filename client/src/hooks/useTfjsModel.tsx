@@ -5,7 +5,7 @@ function useTfjsModel() {
     const [model, setModel] = useState<GraphModel | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    useEffect(function handleLoadGraphModel() {
         async function loadModel() {
         try {
             const model = await loadGraphModel('tfjs_model/model.json');

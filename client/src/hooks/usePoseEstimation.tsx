@@ -1,23 +1,23 @@
-import {RefObject, useEffect, useState} from "react";
+import {RefObject, useEffect, useRef} from "react";
 import {Tensor, tensor} from "@tensorflow/tfjs";
 import {POSE_CONNECTIONS, Results} from "@mediapipe/pose";
 import * as drawingUtils from "@mediapipe/drawing_utils";
-import {Label} from "../components/DjPoseApp.tsx";
 import {Camera} from "@mediapipe/camera_utils";
 import usePose from "./usePose.tsx";
 import useTfjsModel from "./useTfjsModel.tsx";
+import {Label} from "../components/DjPoseApp.types.ts";
 
 const LABEL_MAP: Label[] = ["left", "neutral", "right"];
 
 function usePoseEstimation(
     videoRef: RefObject<HTMLVideoElement | null> ,
     canvasRef: RefObject<HTMLCanvasElement | null>,
-) : Label {
-    const [detectedLabel, setDetectedLabel] = useState<Label>("neutral");
+) : RefObject<Label> {
+    const labelRef = useRef<Label>('neutral');
     const { model } = useTfjsModel();
     const pose = usePose();
 
-    useEffect(() => {
+    useEffect(function PoseEstimation() {
         if (!videoRef.current || !canvasRef.current || !model) return;
 
         const videoElement = videoRef.current;
@@ -59,7 +59,10 @@ function usePoseEstimation(
                     const arr = probabilities[0] as number[];
                     const maxVal = Math.max(...arr);
                     const labelIndex = arr.indexOf(maxVal);
-                    setDetectedLabel(LABEL_MAP[labelIndex] || "neutral");
+
+                    if (labelRef.current !== LABEL_MAP[labelIndex]) {
+                        labelRef.current = LABEL_MAP[labelIndex];
+                    }
                 });
 
                 input.dispose();
@@ -84,9 +87,9 @@ function usePoseEstimation(
         return () => {
             camera.stop();
         };
-    }, [canvasRef, model, pose, setDetectedLabel, videoRef]);
+    }, [canvasRef, model, pose, videoRef]);
 
-    return detectedLabel;
+    return labelRef;
 }
 
 export default usePoseEstimation;

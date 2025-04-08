@@ -1,22 +1,22 @@
 import {createPortal, useFrame} from "@react-three/fiber";
 import * as THREE from "three";
-import {ReactElement, useMemo} from "react";
+import {memo, ReactElement, RefObject, useMemo} from "react";
 import {
     createPositionSimulationMaterial,
     createVelocitySimulationMaterial,
     getPositionData, getVelocityData
 } from "../material/SimulationMaterial.tsx";
-import {Label} from "./DjPoseApp.tsx";
 import useQuadGeometry from "../hooks/useQuadGeometry.tsx";
 import usePingPongTexture from "../hooks/usePingPongTexture.tsx";
+import {Label} from "./DjPoseApp.types.ts";
 
 type SimulationPassProps = {
     size: number;
-    label: Label;
+    label: RefObject<Label>;
     setParticleTexture: (texture: THREE.Texture) => void;
 }
 
-function SimulationPass(
+const SimulationPass = memo(function SimulationPassInternal(
     { size, label, setParticleTexture}: SimulationPassProps
 ): ReactElement {
     const texPositions = new THREE.DataTexture(
@@ -61,10 +61,10 @@ function SimulationPass(
             velocitySimulationShader.texPositions = positionRead.current.texture;
             velocitySimulationShader.texVelocities = velocityRead.current.texture;
         }
-        const strength = 0.2;
-        if (label === 'left') {
+        const strength = 1.0;
+        if (label.current === 'left') {
             velocitySimulationShader.uForce = new THREE.Vector3(0, 0, strength);
-        } else if (label === 'right') {
+        } else if (label.current === 'right') {
             velocitySimulationShader.uForce = new THREE.Vector3(0, 0, -strength);
         } else {
             velocitySimulationShader.uForce = new THREE.Vector3(0, 0, 0);
@@ -138,6 +138,6 @@ function SimulationPass(
             {velSimulationPass}
             {posSimulationPass}
         </>)
-}
+});
 
 export default SimulationPass;

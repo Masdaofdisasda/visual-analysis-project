@@ -20,7 +20,9 @@ function createPose(): Pose {
 
 function usePose() {
 
-    return useMemo(() => createPose(), []);
+    return useMemo(function Pose() {
+        return createPose();
+    }, []);
 }
 
 export default usePose;
