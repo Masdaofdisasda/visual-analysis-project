@@ -55,6 +55,8 @@ function createPositionSimulationMaterial(texPositions: THREE.Texture, texVeloci
     },  simulationVertexShader, posSimulationFragmentShader)
 }
 
+export type VelocitySimulationMaterialInstance = InstanceType<ReturnType<typeof createPositionSimulationMaterial>>;
+
 function createVelocitySimulationMaterial(texPositions: THREE.Texture, texVelocities: THREE.Texture) {
     return shaderMaterial( {
         texPositions: texPositions,
@@ -68,5 +70,6 @@ function createVelocitySimulationMaterial(texPositions: THREE.Texture, texVeloci
     },  simulationVertexShader, velSimulationFragmentShader)
 }
 
+export type PositionSimulationMaterialInstance = InstanceType<ReturnType<typeof createPositionSimulationMaterial>>;
 
 export { createPositionSimulationMaterial, createVelocitySimulationMaterial };

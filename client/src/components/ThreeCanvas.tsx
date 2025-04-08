@@ -18,9 +18,8 @@ const ThreeCanvas = memo(function ThreeCanvasComponent({
         camera={{position: [0.0, 0.0, 2.0]}}
     >
         <Perf position="top-left" style={{opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s'}}/>
-        <ambientLight intensity={0.5}/>
         <ParticleSimulation size={PARTICLE_COUNT} label={detectedLabel}/>
-        <OrbitControls/>
+        <OrbitControls />
     </Canvas>)
 });
 

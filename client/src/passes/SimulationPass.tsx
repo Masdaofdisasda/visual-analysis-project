@@ -8,7 +8,7 @@ import {
 } from "../material/SimulationMaterial.tsx";
 import useQuadGeometry from "../hooks/useQuadGeometry.tsx";
 import usePingPongTexture from "../hooks/usePingPongTexture.tsx";
-import {Label} from "./DjPoseApp.types.ts";
+import {Label} from "../components/DjPoseApp.types.ts";
 
 type SimulationPassProps = {
     size: number;
