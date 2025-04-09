@@ -1,14 +1,13 @@
-import {createPortal, useFrame} from "@react-three/fiber";
+import {useFrame} from "@react-three/fiber";
 import * as THREE from "three";
-import {memo, ReactElement, RefObject, useMemo} from "react";
+import {memo, ReactElement, RefObject, useMemo, useRef} from "react";
 import {
-    createPositionSimulationMaterial,
-    createVelocitySimulationMaterial,
-    getPositionData, getVelocityData
+    getPositionData, getVelocityData, PositionSimulationMaterialInstance, VelocitySimulationMaterialInstance
 } from "../material/SimulationMaterial.tsx";
-import useQuadGeometry from "../hooks/useQuadGeometry.tsx";
 import usePingPongTexture from "../hooks/usePingPongTexture.tsx";
 import {Label} from "../components/DjPoseApp.types.ts";
+import VelocitySimulationPass from "./VelocitySimulationPass.tsx";
+import PositionSimulationPass from "./PositionSimulationPass.tsx";
 
 type SimulationPassProps = {
     size: number;
@@ -36,26 +35,31 @@ const SimulationPass = memo(function SimulationPassInternal(
     );
     texVelocities.needsUpdate = true;
 
-    const PositionSimulationMaterial = createPositionSimulationMaterial(texPositions, texVelocities);
-    const VelocitySimulationMaterial = createVelocitySimulationMaterial(texPositions, texVelocities);
+    const velocitySimulationMaterialRef = useRef<VelocitySimulationMaterialInstance>(null);
+    const positionSimulationMaterialRef = useRef<PositionSimulationMaterialInstance>(null);
 
-    const velocitySimulationShader = useMemo(
-        () => new VelocitySimulationMaterial(size), [size]);
-    const positionSimulationShader = useMemo(
-        () => new PositionSimulationMaterial(size), [size]);
-    const positionScene = useMemo(() => new THREE.Scene(), []);
-    const velocityScene = useMemo(() => new THREE.Scene(), []);
+    const velocitySceneRef = useRef<THREE.Scene>(null);
+    function setVelocitySceneRef(scene: THREE.Scene) {
+        velocitySceneRef.current = scene;
+    }
+    const positionSceneRef = useRef<THREE.Scene>(null);
+    function setPositionSceneRef(scene: THREE.Scene) {
+        positionSceneRef.current = scene;
+    }
     const simulationCamera = useMemo(
         () =>
             new THREE.OrthographicCamera(-1, 1, 1, -1, 1 / Math.pow(2, 53), 1),
         []
     );
 
-    const { positions, uvs } = useQuadGeometry();
     const { readTarget: positionRead, writeTarget: positionWrite, swap: swapPosition } = usePingPongTexture(size);
     const { readTarget: velocityRead, writeTarget: velocityWrite, swap: swapVelocity } = usePingPongTexture(size);
 
     function computeVelocitySimulation(delta: number, gl: THREE.WebGLRenderer) {
+        if (velocitySimulationMaterialRef.current == null
+            || velocitySceneRef.current == null) return;
+        const velocitySimulationShader = velocitySimulationMaterialRef.current;
+
         velocitySimulationShader.uDeltaTime = delta;
         if (delta > 0) { // for the first frame the initial data texture is already set
             velocitySimulationShader.texPositions = positionRead.current.texture;
@@ -72,12 +76,16 @@ const SimulationPass = memo(function SimulationPassInternal(
 
         gl.setRenderTarget(velocityWrite.current);
         gl.clear();
-        gl.render(velocityScene, simulationCamera);
+        gl.render(velocitySceneRef.current, simulationCamera);
     }
 
     function computePositionSimulation(
         delta: number, time: number, gl: THREE.WebGLRenderer
     ) {
+        if (positionSimulationMaterialRef.current == null
+            || positionSceneRef.current == null) return;
+        const positionSimulationShader = positionSimulationMaterialRef.current;
+
         positionSimulationShader.uDeltaTime = delta;
         positionSimulationShader.uTime = time;
         if (delta > 0) { // for the first frame the initial data texture is already set
@@ -87,7 +95,7 @@ const SimulationPass = memo(function SimulationPassInternal(
 
         gl.setRenderTarget(positionWrite.current);
         gl.clear();
-        gl.render(positionScene, simulationCamera);
+        gl.render(positionSceneRef.current, simulationCamera);
     }
 
     useFrame(({ gl, clock }, delta) => {
@@ -100,43 +108,10 @@ const SimulationPass = memo(function SimulationPassInternal(
         swapVelocity();
     });
 
-    const posSimulationPass = createPortal(
-        <mesh>
-            <primitive object={positionSimulationShader} attach="material" />
-            <bufferGeometry>
-                <bufferAttribute
-                    attach="attributes-position"
-                    args={[positions, 3]}
-                />
-                <bufferAttribute
-                    attach="attributes-uv"
-                    args={[uvs, 2]}
-                />
-            </bufferGeometry>
-        </mesh>,
-        positionScene
-    )
-    const velSimulationPass = createPortal(
-        <mesh>
-            <primitive object={velocitySimulationShader} attach="material" />
-            <bufferGeometry>
-                <bufferAttribute
-                    attach="attributes-position"
-                    args={[positions, 3]}
-                />
-                <bufferAttribute
-                    attach="attributes-uv"
-                    args={[uvs, 2]}
-                />
-            </bufferGeometry>
-        </mesh>,
-        velocityScene
-    )
-
     return (
         <>
-            {velSimulationPass}
-            {posSimulationPass}
+            <VelocitySimulationPass ref={velocitySimulationMaterialRef} setSceneRef={setVelocitySceneRef} size={size} texPositions={texPositions} texVelocities={texVelocities} />
+            <PositionSimulationPass ref={positionSimulationMaterialRef} setScene={setPositionSceneRef} size={size} texPositions={texPositions} texVelocities={texVelocities} />
         </>)
 });
 
