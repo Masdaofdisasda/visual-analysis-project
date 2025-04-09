@@ -1,9 +1,8 @@
-import {memo, RefObject, useRef} from "react";
+import {memo, RefObject} from "react";
 import * as THREE from "three";
 import SimulationPass from "../passes/SimulationPass.tsx";
-import ParticlePass from "../passes/ParticlePass.tsx";
 import {Label} from "./DjPoseApp.types.ts";
-import {ParticleMaterialInstance} from "../material/ParticleMaterial.tsx";
+import useParticlePass from "../passes/useParticlePass.tsx";
 
 export type ParticleSimulationProps = {
     size: number;
@@ -12,17 +11,16 @@ export type ParticleSimulationProps = {
 
 const ParticleSimulation = memo(
     function ParticleSimulationComponent({ size, label }: ParticleSimulationProps) {
-    const particleMaterialRef = useRef<ParticleMaterialInstance | null>(null);
+        const {particleShader, particleComponent} = useParticlePass(size);
 
     function onUpdateParticles(texture: THREE.Texture) {
-        if (!particleMaterialRef.current) return;
-        particleMaterialRef.current.texPositions = texture;
+        particleShader.texPositions = texture;
     }
 
     return (
         <group>
             <SimulationPass size={size} label={label} setParticleTexture={onUpdateParticles} />
-            <ParticlePass size={size} ref={particleMaterialRef} />
+            {particleComponent}
         </group>
     );
 });
