@@ -1,0 +1,28 @@
+import {Canvas} from "@react-three/fiber";
+import {Perf} from "r3f-perf";
+import ParticleSimulation, {UniformProps} from "./ParticleSimulation.tsx";
+import {OrbitControls} from "@react-three/drei";
+import {Label, PARTICLE_COUNT} from "./DjPoseApp.types.ts";
+import {memo, RefObject} from "react";
+
+export type ThreeCanvasProps = {
+    detectedLabel: RefObject<Label>;
+    isDebug: boolean;
+    uniforms: UniformProps;
+}
+
+const ThreeCanvas = memo(function ThreeCanvasComponent({
+      detectedLabel,
+      isDebug,
+    uniforms
+    }: ThreeCanvasProps) {
+    return (<Canvas
+        camera={{position: [0.0, 0.0, 2.0]}}
+    >
+        <Perf position="top-left" style={{opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s'}} />
+        <ParticleSimulation uniforms={uniforms} size={PARTICLE_COUNT} label={detectedLabel}/>
+        <OrbitControls autoRotate />
+    </Canvas>)
+});
+
+export default ThreeCanvas;

@@ -1,13 +1,10 @@
-import {ReactElement, RefObject, useMemo} from "react";
-import * as THREE from "three";
 import {createParticleMaterial} from "../material/ParticleMaterial.tsx";
+import {useMemo} from "react";
+import * as THREE from "three";
 
-export type ParticlePassProps = {
-    size: number;
-    ref: RefObject<THREE.ShaderMaterial | null>;
-}
-
-function ParticlePass( { size, ref }: ParticlePassProps) : ReactElement {
+function useParticlePass(
+    size: number,
+) {
     const ParticleMaterial = createParticleMaterial();
 
     const particleShader = useMemo(() =>
@@ -31,16 +28,18 @@ function ParticlePass( { size, ref }: ParticlePassProps) : ReactElement {
         return particles;
     }, [size]);
 
-    return (<points>
+    const particleComponent = (<points>
             <bufferGeometry>
                 <bufferAttribute
                     attach="attributes-position"
                     args={[particlesPosition, 3]}
                 />
             </bufferGeometry>
-            <primitive ref={ref} object={particleShader} attach="material" />
+            <primitive object={particleShader} attach="material" />
         </points>
     )
+
+    return { particleShader, particleComponent };
 }
 
-export default ParticlePass;
+export default useParticlePass;
