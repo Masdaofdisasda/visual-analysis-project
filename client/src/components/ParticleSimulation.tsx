@@ -11,10 +11,18 @@ import {useFrame} from "@react-three/fiber";
 export type ParticleSimulationProps = {
     size: number;
     label: RefObject<Label>;
+    uniforms: UniformProps;
+}
+
+export type UniformProps = {
+    uMaxLife: number,
+    uDamping: number,
+    uBoundaryRadius: number,
+    uCurlStrength: number
 }
 
 const ParticleSimulation = memo(
-    function ParticleSimulationComponent({ size, label }: ParticleSimulationProps) {
+    function ParticleSimulationComponent({ size, label, uniforms }: ParticleSimulationProps) {
         const {particleShader, particleComponent} = useParticlePass(size);
         const {texPositions, texVelocities} = useInitialDataTextures(size);
         const {velocitySimulationShader, velocityScene, velocityComponent} = useVelocitySimulationPass(size, texPositions, texVelocities);
@@ -31,6 +39,10 @@ const ParticleSimulation = memo(
 
         function computeVelocitySimulation(delta: number, gl: THREE.WebGLRenderer) {
             velocitySimulationShader.uDeltaTime = delta;
+            velocitySimulationShader.uMaxLife = uniforms.uMaxLife;
+            velocitySimulationShader.uDamping = uniforms.uDamping;
+            velocitySimulationShader.uCurlStrength = uniforms.uCurlStrength;
+            velocitySimulationShader.uBoundaryRadius = uniforms.uBoundaryRadius;
             if (delta > 0) { // for the first frame the initial data texture is already set
                 velocitySimulationShader.texPositions = positionRead.current.texture;
                 velocitySimulationShader.texVelocities = velocityRead.current.texture;
@@ -54,6 +66,7 @@ const ParticleSimulation = memo(
         ) {
             positionSimulationShader.uDeltaTime = delta;
             positionSimulationShader.uTime = time;
+            positionSimulationShader.uMaxLife = uniforms.uMaxLife;
             if (delta > 0) { // for the first frame the initial data texture is already set
                 positionSimulationShader.texPositions = positionRead.current.texture;
                 positionSimulationShader.texVelocities = velocityRead.current.texture;
