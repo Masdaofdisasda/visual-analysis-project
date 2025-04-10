@@ -1,7 +1,8 @@
-import {memo, useEffect, useState} from "react";
-import usePoseDetection from "../hooks/usePoseDetection.tsx";
-import ThreeCanvas from "./ThreeCanvas.tsx";
+import {lazy, memo, Suspense, useEffect, useState} from "react";
 import {UniformProps} from "./ParticleSimulation.tsx";
+import usePoseDetection from "../hooks/usePoseDetection.tsx";
+
+const ThreeCanvas = lazy(() => import("./ThreeCanvas.tsx"));
 
 const DjPoseApp = memo(function DjPoseAppInternal() {
     const [isDebug, setIsDebug] = useState(false);
@@ -28,7 +29,13 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
 
     return (
         <div className={"h-screen w-screen"}>
-            <ThreeCanvas uniforms={uniforms} isDebug={isDebug} detectedLabel={detectedLabel} />
+            <Suspense fallback={
+                <div className="flex flex-col items-center justify-center h-full">
+                    <h1 className="text-2xl font-semibold mb-6">Loading...</h1>
+                </div>
+            }>
+                <ThreeCanvas uniforms={uniforms} isDebug={isDebug} detectedLabel={detectedLabel} />
+            </Suspense>
             {debugOverlay}
             <div
                 className={"absolute bottom-1 right-1 opacity-10 text-white text-sm"}>
