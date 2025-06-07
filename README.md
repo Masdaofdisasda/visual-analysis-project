@@ -53,5 +53,5 @@ npm dev
 
 or create an Electron App:
 ```bash
-npm electron:build
+npm run electron:build
 ```
