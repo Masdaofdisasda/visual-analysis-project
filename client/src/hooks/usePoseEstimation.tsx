@@ -31,7 +31,7 @@ function usePoseEstimation(
 
             if (results.poseLandmarks) {
                 drawingUtils.drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, {
-                    color: "#ff0000",
+                    color: "#00FF00",
                     lineWidth: 4,
                 });
                 drawingUtils.drawLandmarks(ctx, results.poseLandmarks, {
