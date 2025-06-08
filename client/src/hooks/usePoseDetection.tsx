@@ -5,6 +5,8 @@ const labelColors: Record<string, string> = {
     left: '#ff8400',
     right: '#00aaff',
     neutral: '#8a8a8a',
+    up: '#009500',
+    wide: '#951e00',
 };
 
 function usePoseDetection(

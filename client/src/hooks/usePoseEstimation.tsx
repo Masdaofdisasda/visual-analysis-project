@@ -7,7 +7,7 @@ import usePose from "./usePose.tsx";
 import useTfjsModel from "./useTfjsModel.tsx";
 import {Label} from "../components/DjPoseApp.types.ts";
 
-const LABEL_MAP: Label[] = ["left", "neutral", "right"];
+const LABEL_MAP: Label[] = ["left", "neutral", "right", "up", "wide"];
 
 function usePoseEstimation(
     videoRef: RefObject<HTMLVideoElement | null> ,
@@ -31,7 +31,7 @@ function usePoseEstimation(
 
             if (results.poseLandmarks) {
                 drawingUtils.drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, {
-                    color: "#00FF00",
+                    color: "#ff0000",
                     lineWidth: 4,
                 });
                 drawingUtils.drawLandmarks(ctx, results.poseLandmarks, {
