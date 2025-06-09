@@ -3,14 +3,14 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import electron from 'vite-plugin-electron';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
     base: './',
     plugins: [
         react(),
         tailwindcss(),
-        electron({
+        command === 'build' && electron({
             entry: 'electron/main.js',
-        })
+        }),
     ],
     build: {
         target: 'esnext',
@@ -18,4 +18,4 @@ export default defineConfig({
         minify: 'esbuild',
         sourcemap: false,
     },
-});
+}));
