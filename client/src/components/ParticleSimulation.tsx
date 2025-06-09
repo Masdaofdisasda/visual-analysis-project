@@ -48,13 +48,19 @@ const ParticleSimulation = memo(
                 velocitySimulationShader.texVelocities = velocityRead.current.texture;
             }
             const strength = 1.0;
+
             if (label.current === 'left') {
                 velocitySimulationShader.uForce = new THREE.Vector3(0, 0, strength);
             } else if (label.current === 'right') {
                 velocitySimulationShader.uForce = new THREE.Vector3(0, 0, -strength);
+            } else if (label.current === 'up') {
+                velocitySimulationShader.uForce = new THREE.Vector3(0, strength, 0);
+            } else if (label.current === 'wide') {
+                velocitySimulationShader.uForce = new THREE.Vector3(strength, 0, 0); 
             } else {
                 velocitySimulationShader.uForce = new THREE.Vector3(0, 0, 0);
             }
+
 
             gl.setRenderTarget(velocityWrite.current);
             gl.clear();
