@@ -7,16 +7,8 @@ import { Label, PARTICLE_COUNT } from "./DjPoseApp.types.ts";
 import { memo, RefObject, useRef } from "react";
 import { EffectComposer, HueSaturation, ToneMapping } from "@react-three/postprocessing";
 import { AgXToneMapping } from "three";
-import CameraController from "./CameraController";
-import { useFrame } from "@react-three/fiber";
+import CameraController from "./CameraController.tsx";
 
-function DebugBox() {
-    useFrame(() => {
-      console.log("DebugBox useFrame is running");
-    });
-  
-    return <group />;
-  }
 
 export type ThreeCanvasProps = {
     detectedLabel: RefObject<Label>;
@@ -38,10 +30,9 @@ const ThreeCanvas = memo(function ThreeCanvasComponent({
             {import.meta.env.DEV && (
                 <Perf position="top-left" style={{ opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s' }} />
             )}
-              <DebugBox /> {/*should log */}
             <ParticleSimulation uniforms={uniforms} size={PARTICLE_COUNT} label={detectedLabel} />
-            <OrbitControls ref={controlsRef} enableZoom={false} enablePan={false} autoRotate={false} />
-            <CameraController detectedLabel={detectedLabel} controlsRef={controlsRef} />
+            <OrbitControls enableZoom={false} enablePan={false} autoRotate={false} />
+            <CameraController detectedLabel={detectedLabel} />
             <EffectComposer>
                 <HueSaturation hue={0.0} saturation={0.0} />
                 <ToneMapping mode={AgXToneMapping} />

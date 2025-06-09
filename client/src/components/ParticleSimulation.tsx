@@ -47,19 +47,29 @@ const ParticleSimulation = memo(
                 velocitySimulationShader.texPositions = positionRead.current.texture;
                 velocitySimulationShader.texVelocities = velocityRead.current.texture;
             }
-            const strength = 1.0;
 
-            if (label.current === 'left') {
-                velocitySimulationShader.uForce = new THREE.Vector3(0, 0, strength);
-            } else if (label.current === 'right') {
-                velocitySimulationShader.uForce = new THREE.Vector3(0, 0, -strength);
-            } else if (label.current === 'up') {
-                velocitySimulationShader.uForce = new THREE.Vector3(0, strength, 0);
-            } else if (label.current === 'wide') {
-                velocitySimulationShader.uForce = new THREE.Vector3(strength, 0, 0); 
-            } else {
-                velocitySimulationShader.uForce = new THREE.Vector3(0, 0, 0);
+            // Apply force depending on detected pose
+            let force = new THREE.Vector3(0, 0, 0);
+            const strength = 30.0;
+
+            switch (label.current) {
+                case "up":
+                    force.set(0, strength, 0); // upwards force flagged by y component
+                    break;
+                case "wide":
+                    force.set(strength*3, 0, 0); // explosion flaggedby x component
+                    break;
+                case "right":
+                    force.set(0, 0, strength/2.0); // rotation flaggedby z component
+                    break;
+                case "left":
+                    force.set(0, 0, -strength/2.0); // rotation flaggedby z component
+                    break;
+                default:
+                    force.set(0, 0, 0);
             }
+
+            velocitySimulationShader.uForce = force;
 
 
             gl.setRenderTarget(velocityWrite.current);

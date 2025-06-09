@@ -1,36 +1,47 @@
-import { useFrame } from "@react-three/fiber";
-import { RefObject } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { RefObject, useRef } from "react";
 import { Label } from "./DjPoseApp.types";
-import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-
-type OrbitControlsWithRotate = OrbitControlsImpl & {
-  rotateLeft: (angle: number) => void;
-  update: () => void;
-};
+import * as THREE from "three";
 
 export default function CameraController({
   detectedLabel,
-  controlsRef,
 }: {
   detectedLabel: RefObject<Label>;
-  controlsRef: React.RefObject<OrbitControlsWithRotate | null>;
 }) {
+  const { camera } = useThree();
+  const rotationVelocity = useRef(0);
+  const defaultZoom = 4; // Ausgangszoom
+
   useFrame(() => {
-    const controls = controlsRef.current;
-    if (!controls || typeof controls.rotateLeft !== "function") return;
-
-    console.log("CameraController useFrame running", detectedLabel.current);
-
     const label = detectedLabel.current;
 
+    // Rotation control
     if (label === "left") {
-      controls.rotateLeft(0.01);
+      rotationVelocity.current = 0.01;
     } else if (label === "right") {
-      controls.rotateLeft(-0.01);
+      rotationVelocity.current = -0.01;
+    } else {
+      rotationVelocity.current = 0; // no rotation change
     }
 
-    controls.update();
+    // Apply rotation around Y axis (camera orbits the center endlessly)
+    const radius = Math.sqrt(
+      camera.position.x * camera.position.x +
+      camera.position.z * camera.position.z
+    );
+    const angle = Math.atan2(camera.position.z, camera.position.x) + rotationVelocity.current;
+    camera.position.x = radius * Math.cos(angle);
+    camera.position.z = radius * Math.sin(angle);
+
+    // Zoom control
+    if (label === "wide") {
+      camera.position.z += 0.05;
+    } else if (label === "neutral") {
+      camera.position.z += (defaultZoom - camera.position.z) * 0.02;
+    }
+
+    camera.lookAt(0, 0, 0);
   });
 
-  return <group />; 
+  return <group />;
 }

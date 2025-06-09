@@ -161,12 +161,20 @@ void main() {
     vec3 accel = vec3(0);
     float justBorn = 0.2 * uMaxLife;
     if (age > justBorn) {
-        accel = uForce;
+        if (uForce.y > 0.0) {  // upwards force flagged by y component
+            accel += uForce;
+        }else if (uForce.x > 0.0) { // explosion flaggedby x component
+            vec3 explosionDir = normalize(pos)* uForce.x; 
+            accel += explosionDir;
+        }else if (uForce.z != 0.0) { // rotation flaggedby z component
+            vec3 tangent = normalize(vec3(-pos.z, 0.0, pos.x));
+            accel += tangent * uForce.z;
+        }
     }
 
     // Curl noise acceleration
     vec3 curlDir = normalize(curlNoise(pos));
-    accel = curlDir * uCurlStrength;
+    accel += curlDir * uCurlStrength;
 
     // Boundary check
     float dist = length(pos);
