@@ -12,17 +12,19 @@ export type ParticleSimulationProps = {
     size: number;
     label: RefObject<Label>;
     uniforms: UniformProps;
+    audioLevel: RefObject<number>;
 }
 
 export type UniformProps = {
     uMaxLife: number,
     uDamping: number,
     uBoundaryRadius: number,
-    uCurlStrength: number
+    uCurlStrength: number,
+    uEnableAudio: number,
 }
 
 const ParticleSimulation = memo(
-    function ParticleSimulationComponent({ size, label, uniforms }: ParticleSimulationProps) {
+    function ParticleSimulationComponent({ size, label, uniforms, audioLevel }: ParticleSimulationProps) {
         const {particleShader, particleComponent} = useParticlePass(size);
         const {texPositions, texVelocities} = useInitialDataTextures(size);
         const {velocitySimulationShader, velocityScene, velocityComponent} = useVelocitySimulationPass(size, texPositions, texVelocities);
@@ -41,7 +43,8 @@ const ParticleSimulation = memo(
             velocitySimulationShader.uDeltaTime = delta;
             velocitySimulationShader.uMaxLife = uniforms.uMaxLife;
             velocitySimulationShader.uDamping = uniforms.uDamping;
-            velocitySimulationShader.uCurlStrength = uniforms.uCurlStrength;
+            const audioLevelValue = Math.max(audioLevel.current * uniforms.uEnableAudio, 0.00001)
+            velocitySimulationShader.uCurlStrength = uniforms.uCurlStrength * audioLevelValue;
             velocitySimulationShader.uBoundaryRadius = uniforms.uBoundaryRadius;
             if (delta > 0) { // for the first frame the initial data texture is already set
                 velocitySimulationShader.texPositions = positionRead.current.texture;

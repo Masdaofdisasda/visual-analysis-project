@@ -1,6 +1,7 @@
-import {lazy, memo, Suspense, useEffect, useState} from "react";
+import {lazy, memo, RefObject, Suspense, useEffect, useState} from "react";
 import {UniformProps} from "./ParticleSimulation.tsx";
 import usePoseDetection from "../hooks/usePoseDetection.tsx";
+import {useMicrophoneLevel} from "../hooks/useMicrophone.tsx";
 
 const ThreeCanvas = lazy(() => import("./ThreeCanvas.tsx"));
 
@@ -12,7 +13,9 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         uDamping: 0.99,
         uBoundaryRadius: 100,
         uCurlStrength: 1,
+        uEnableAudio: 1,
     };
+    const audioLevel: RefObject<number> = useMicrophoneLevel()
 
     useEffect(function handleKeyPress() {
         const handleKeyPress = (event: KeyboardEvent) => {
@@ -34,7 +37,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                     <h1 className="text-2xl font-semibold mb-6">Loading...</h1>
                 </div>
             }>
-                <ThreeCanvas uniforms={uniforms} isDebug={isDebug} detectedLabel={detectedLabel} />
+                <ThreeCanvas uniforms={uniforms} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} />
             </Suspense>
             {debugOverlay}
             <div
@@ -89,6 +92,14 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                                 onChange={(e) => uniforms.uCurlStrength = parseFloat(e.target.value)}
                             />
                         </label>
+                       <label>
+                           Enable Audio Input:
+                           <input
+                               type="checkbox"
+                               defaultChecked={true}
+                               onChange={(e) => uniforms.uEnableAudio = e.target.checked ? 1 : 0}
+                           />
+                       </label>
                     </div>
         </div>
     )
