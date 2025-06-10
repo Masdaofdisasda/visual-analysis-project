@@ -36,8 +36,11 @@ void main() {
 
     vec3 vel = velData.xyz;
 
+    // prevent too large time steps
+     float dt = min(uDeltaTime, 1.0/30.0);
+
     // 1) increment age
-    age += uDeltaTime;
+    age += dt;
 
     // 2) check if we exceed lifetime
     if(age > uMaxLife) {
@@ -55,7 +58,7 @@ void main() {
     }
     else {
         // normal Euler position update
-        pos += vel * uDeltaTime;
+        pos += vel * dt;
     }
 
     gl_FragColor = vec4(pos, age); // store updated pos & new age

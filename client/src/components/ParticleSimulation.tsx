@@ -49,7 +49,7 @@ const ParticleSimulation = memo(
             }
 
             // Apply force depending on detected pose
-            let force = new THREE.Vector3(0, 0, 0);
+            const force = new THREE.Vector3(0, 0, 0);
             const strength = 30.0;
 
             switch (label.current) {
@@ -65,6 +65,7 @@ const ParticleSimulation = memo(
                 case "left":
                     force.set(0, 0, -strength/2.0); // rotation flaggedby z component
                     break;
+                case "neutral":
                 default:
                     force.set(0, 0, 0);
             }
