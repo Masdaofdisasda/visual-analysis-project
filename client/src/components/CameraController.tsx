@@ -1,9 +1,9 @@
 import { OrbitControls } from '@react-three/drei'
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useRef, RefObject } from 'react'
+import {useRef, RefObject} from 'react'
 import * as THREE from 'three'
 import type { Label } from './DjPoseApp.types'
-import {OrbitControls as OrbitControlsImpl} from "three-stdlib/controls/OrbitControls";
 
 const _sph = new THREE.Spherical()
 
@@ -17,7 +17,7 @@ const _sph = new THREE.Spherical()
  * @returns - The rendered camera controller component.
  */
 function CameraController({ detectedLabel }: { detectedLabel: RefObject<Label> }) {
-    const controls = useRef<typeof OrbitControlsImpl | null>(null)
+    const controls = useRef<OrbitControlsImpl | null>(null);
     const { camera } = useThree()
 
     useFrame((_, delta) => {
