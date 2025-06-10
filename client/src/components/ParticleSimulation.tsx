@@ -12,17 +12,36 @@ export type ParticleSimulationProps = {
     size: number;
     label: RefObject<Label>;
     uniforms: UniformProps;
+    audioLevel: RefObject<number>;
 }
 
+/**
+ * Uniform properties for the particle simulation.
+ *
+ * @property uMaxLife - Maximum lifespan of particles.
+ * @property uDamping - Damping factor for particle velocity.
+ * @property uBoundaryRadius - Radius of the simulation boundary.
+ * @property uCurlStrength - Strength of the curl noise applied to particles.
+ * @property uEnableAudio - Flag to enable or disable audio-based effects {0: disable, 1: enable}.
+ */
 export type UniformProps = {
     uMaxLife: number,
     uDamping: number,
     uBoundaryRadius: number,
-    uCurlStrength: number
+    uCurlStrength: number,
+    uEnableAudio: number,
 }
 
+/**
+ * React component for simulating particles in a 3D space.
+ * This component integrates multiple simulation passes for velocity and position updates,
+ * and applies forces based on detected pose labels and audio levels.
+ *
+ * @param props - The props for the component.
+ * @returns - The rendered particle simulation group.
+ */
 const ParticleSimulation = memo(
-    function ParticleSimulationComponent({ size, label, uniforms }: ParticleSimulationProps) {
+    function ParticleSimulationComponent({ size, label, uniforms, audioLevel }: ParticleSimulationProps) {
         const {particleShader, particleComponent} = useParticlePass(size);
         const {texPositions, texVelocities} = useInitialDataTextures(size);
         const {velocitySimulationShader, velocityScene, velocityComponent} = useVelocitySimulationPass(size, texPositions, texVelocities);
@@ -41,20 +60,38 @@ const ParticleSimulation = memo(
             velocitySimulationShader.uDeltaTime = delta;
             velocitySimulationShader.uMaxLife = uniforms.uMaxLife;
             velocitySimulationShader.uDamping = uniforms.uDamping;
-            velocitySimulationShader.uCurlStrength = uniforms.uCurlStrength;
+            const audioLevelValue = Math.max(audioLevel.current * uniforms.uEnableAudio, 0.00001)
+            velocitySimulationShader.uCurlStrength = uniforms.uCurlStrength * audioLevelValue;
             velocitySimulationShader.uBoundaryRadius = uniforms.uBoundaryRadius;
             if (delta > 0) { // for the first frame the initial data texture is already set
                 velocitySimulationShader.texPositions = positionRead.current.texture;
                 velocitySimulationShader.texVelocities = velocityRead.current.texture;
             }
-            const strength = 1.0;
-            if (label.current === 'left') {
-                velocitySimulationShader.uForce = new THREE.Vector3(0, 0, strength);
-            } else if (label.current === 'right') {
-                velocitySimulationShader.uForce = new THREE.Vector3(0, 0, -strength);
-            } else {
-                velocitySimulationShader.uForce = new THREE.Vector3(0, 0, 0);
+
+            // Apply force depending on detected pose
+            const force = new THREE.Vector3(0, 0, 0);
+            const strength = 30.0;
+
+            switch (label.current) {
+                case "up":
+                    force.set(0, strength, 0); // upwards force flagged by y component
+                    break;
+                case "wide":
+                    force.set(strength*3, 0, 0); // explosion flaggedby x component
+                    break;
+                case "right":
+                    force.set(0, 0, strength/2.0); // rotation flaggedby z component
+                    break;
+                case "left":
+                    force.set(0, 0, -strength/2.0); // rotation flaggedby z component
+                    break;
+                case "neutral":
+                default:
+                    force.set(0, 0, 0);
             }
+
+            velocitySimulationShader.uForce = force;
+
 
             gl.setRenderTarget(velocityWrite.current);
             gl.clear();

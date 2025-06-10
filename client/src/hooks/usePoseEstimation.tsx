@@ -7,8 +7,15 @@ import usePose from "./usePose.tsx";
 import useTfjsModel from "./useTfjsModel.tsx";
 import {Label} from "../components/DjPoseApp.types.ts";
 
-const LABEL_MAP: Label[] = ["left", "neutral", "right"];
+const LABEL_MAP: Label[] = ["left", "neutral", "right", "up", "wide"];
 
+/**
+ * Custom hook for estimating human poses using MediaPipe Pose and TensorFlow.js.
+ *
+ * @param videoRef - Reference to the video element used for pose detection.
+ * @param canvasRef - Reference to the canvas element used for rendering pose landmarks.
+ * @returns - A reference to the currently detected pose label.
+ */
 function usePoseEstimation(
     videoRef: RefObject<HTMLVideoElement | null> ,
     canvasRef: RefObject<HTMLCanvasElement | null>,

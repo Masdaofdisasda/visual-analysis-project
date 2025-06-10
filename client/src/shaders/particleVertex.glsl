@@ -13,5 +13,5 @@ void main() {
 
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(pos, 1.0);
 
-    gl_PointSize = mix(3.0, 0.0, lifeFrac); // shrink to 0 at end of life
+    gl_PointSize = mix(1.5, 0.0, lifeFrac); // shrink to 0 at end of life
 }

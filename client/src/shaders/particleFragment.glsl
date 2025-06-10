@@ -1,6 +1,7 @@
 varying float vLifeFrac;
 
 // Approximate RGB from Kelvin temperature (in range ~1000K to 10000K)
+// based on https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
 vec3 blackbody(float kelvin) {
     float t = kelvin / 1000.0;
 

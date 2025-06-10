@@ -1,3 +1,11 @@
+/**
+ * A hook to generate quad geometry data for rendering.
+ * This hook provides position and UV coordinates for a quad (rectangle) in 3D space.
+ *
+ * @returns - An object containing:
+ *   - positions - The vertex positions of the quad in 3D space.
+ *   - uvs - The UV coordinates for texture mapping on the quad.
+ */
 function useQuadGeometry(): { positions: Float32Array<ArrayBuffer>; uvs: Float32Array<ArrayBuffer> } {
 
     // Geometry arrays

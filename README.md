@@ -13,7 +13,7 @@ git clone https://github.com/Masdaofdisasda/visual-analysis-project.git
 cd visual-analysis-project/training
 # assuming you have conda
 conda env create --file=environment.yml
-conda activate humanpose
+conda activate humanmotion
 ```
 You can now add training data in training/data/raw/. The pipeline expects the videos in th form [labelname]_n.mp4.
 Then run the pose_training_pipeline.ipynb and then a tensorflow model should be saved in training/models together with a label map.
@@ -53,5 +53,5 @@ npm dev
 
 or create an Electron App:
 ```bash
-npm electron:build
+npm run electron:build
 ```

@@ -18,6 +18,12 @@ function createPose(): Pose {
     return pose;
 }
 
+/**
+ * Creates and configures a new instance of the MediaPipe Pose object.
+ * The Pose object is used for detecting and tracking human poses in video or image inputs.
+ *
+ * @returns - A configured instance of the MediaPipe Pose object.
+ */
 function usePose() {
 
     return useMemo(function Pose() {

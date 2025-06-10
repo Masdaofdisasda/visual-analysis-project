@@ -1,9 +1,15 @@
-import {lazy, memo, Suspense, useEffect, useState} from "react";
+import {lazy, memo, RefObject, Suspense, useEffect, useState} from "react";
 import {UniformProps} from "./ParticleSimulation.tsx";
 import usePoseDetection from "../hooks/usePoseDetection.tsx";
+import {useMicrophoneLevel} from "../hooks/useMicrophone.tsx";
 
 const ThreeCanvas = lazy(() => import("./ThreeCanvas.tsx"));
 
+/**
+ * `DjPoseApp` is a React component that serves as the main application for DJ pose detection and visualization.
+ *
+ * @returns a full-screen application layout with a Three.js canvas and debug controls.
+ */
 const DjPoseApp = memo(function DjPoseAppInternal() {
     const [isDebug, setIsDebug] = useState(false);
     const { detectedLabel, debugOverlay} = usePoseDetection(isDebug);
@@ -12,7 +18,9 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         uDamping: 0.99,
         uBoundaryRadius: 100,
         uCurlStrength: 1,
+        uEnableAudio: 1,
     };
+    const audioLevel: RefObject<number> = useMicrophoneLevel()
 
     useEffect(function handleKeyPress() {
         const handleKeyPress = (event: KeyboardEvent) => {
@@ -27,6 +35,26 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         };
     }, []);
 
+    useEffect(function handleTouchInput() {
+        let lastTap = 0;
+
+        const handleTouch = () => {
+            const currentTime = new Date().getTime();
+            const tapInterval = currentTime - lastTap;
+
+            if (tapInterval < 300 && tapInterval > 0) {
+                setIsDebug(prev => !prev);
+            }
+
+            lastTap = currentTime;
+        };
+
+        window.addEventListener('touchend', handleTouch);
+        return () => {
+            window.removeEventListener('touchend', handleTouch);
+        };
+    }, []);
+
     return (
         <div className={"h-screen w-screen"}>
             <Suspense fallback={
@@ -34,12 +62,12 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                     <h1 className="text-2xl font-semibold mb-6">Loading...</h1>
                 </div>
             }>
-                <ThreeCanvas uniforms={uniforms} isDebug={isDebug} detectedLabel={detectedLabel} />
+                <ThreeCanvas uniforms={uniforms} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} />
             </Suspense>
             {debugOverlay}
             <div
                 className={"absolute bottom-1 right-1 opacity-10 text-white text-sm"}>
-                Press 'D' to toggle debug menu
+                Press 'D' or double tap to toggle debug menu
             </div>
            <div
                className={"absolute top-1 right-1 bg-gray-800 p-2 rounded text-white flex flex-col gap-2"}
@@ -89,6 +117,14 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                                 onChange={(e) => uniforms.uCurlStrength = parseFloat(e.target.value)}
                             />
                         </label>
+                       <label>
+                           Enable Audio Input:
+                           <input
+                               type="checkbox"
+                               defaultChecked={true}
+                               onChange={(e) => uniforms.uEnableAudio = e.target.checked ? 1 : 0}
+                           />
+                       </label>
                     </div>
         </div>
     )
