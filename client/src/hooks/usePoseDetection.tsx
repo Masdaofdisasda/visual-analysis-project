@@ -9,6 +9,14 @@ const labelColors: Record<string, string> = {
     wide: '#951e00',
 };
 
+/**
+ * A hook for detecting poses using MediaPipe Pose and rendering debug information.
+ *
+ * @param isDebug - Flag to enable or disable debug mode.
+ * @returns - An object containing:
+ *   - detectedLabel - The currently detected pose label.
+ *   - debugOverlay - A React component for the debug overlay.
+ */
 function usePoseDetection(
     isDebug: boolean,
 ) {

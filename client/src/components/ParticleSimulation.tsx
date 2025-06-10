@@ -15,6 +15,15 @@ export type ParticleSimulationProps = {
     audioLevel: RefObject<number>;
 }
 
+/**
+ * Uniform properties for the particle simulation.
+ *
+ * @property uMaxLife - Maximum lifespan of particles.
+ * @property uDamping - Damping factor for particle velocity.
+ * @property uBoundaryRadius - Radius of the simulation boundary.
+ * @property uCurlStrength - Strength of the curl noise applied to particles.
+ * @property uEnableAudio - Flag to enable or disable audio-based effects {0: disable, 1: enable}.
+ */
 export type UniformProps = {
     uMaxLife: number,
     uDamping: number,
@@ -23,6 +32,14 @@ export type UniformProps = {
     uEnableAudio: number,
 }
 
+/**
+ * React component for simulating particles in a 3D space.
+ * This component integrates multiple simulation passes for velocity and position updates,
+ * and applies forces based on detected pose labels and audio levels.
+ *
+ * @param props - The props for the component.
+ * @returns - The rendered particle simulation group.
+ */
 const ParticleSimulation = memo(
     function ParticleSimulationComponent({ size, label, uniforms, audioLevel }: ParticleSimulationProps) {
         const {particleShader, particleComponent} = useParticlePass(size);

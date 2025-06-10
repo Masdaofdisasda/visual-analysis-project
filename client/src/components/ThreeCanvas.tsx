@@ -7,7 +7,6 @@ import { EffectComposer, HueSaturation, ToneMapping } from "@react-three/postpro
 import { AgXToneMapping } from "three";
 import CameraController from "./CameraController.tsx";
 
-
 export type ThreeCanvasProps = {
     detectedLabel: RefObject<Label>;
     isDebug: boolean;
@@ -15,6 +14,12 @@ export type ThreeCanvasProps = {
     audioLevel: RefObject<number>
 };
 
+/**
+ * React component for rendering a Three.js canvas with particle simulation and post-processing effects.
+ *
+ * @param props - The props for the component.
+ * @returns - The rendered Three.js canvas.
+ */
 const ThreeCanvas = memo(function ThreeCanvasComponent({
     detectedLabel,
     isDebug,

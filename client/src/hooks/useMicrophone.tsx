@@ -1,5 +1,9 @@
 import {RefObject, useEffect, useRef} from 'react'
 
+/**
+ * A hook to access the microphone level in real-time.
+ * Returns a ref object with the current microphone level (0 - 1).
+ */
 export function useMicrophoneLevel(): RefObject<number> {
     const level = useRef(0)
     useEffect(() => {

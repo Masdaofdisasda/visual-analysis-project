@@ -32,7 +32,7 @@ function getVelocityData(width: number, height: number, velocityScale = 0.1) {
         data[i + 0] = (Math.random() - 0.5) * 2 * velocityScale;
         data[i + 1] = (Math.random() - 0.5) * 2 * velocityScale;
         data[i + 2] = (Math.random() - 0.5) * 2 * velocityScale;
-        data[i + 3] = 1.0; // w (unused or damping factor if you want per-particle)
+        data[i + 3] = 1.0; // w (unused)
     }
 
     return data;

@@ -5,6 +5,11 @@ import {useMicrophoneLevel} from "../hooks/useMicrophone.tsx";
 
 const ThreeCanvas = lazy(() => import("./ThreeCanvas.tsx"));
 
+/**
+ * `DjPoseApp` is a React component that serves as the main application for DJ pose detection and visualization.
+ *
+ * @returns a full-screen application layout with a Three.js canvas and debug controls.
+ */
 const DjPoseApp = memo(function DjPoseAppInternal() {
     const [isDebug, setIsDebug] = useState(false);
     const { detectedLabel, debugOverlay} = usePoseDetection(isDebug);

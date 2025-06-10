@@ -2,6 +2,15 @@ import {useFBO} from "@react-three/drei";
 import * as THREE from "three";
 import {useRef} from "react";
 
+/**
+ * A hook to create and manage a ping-pong texture setup using Frame Buffer Objects (FBOs).
+ *
+ * @param size - The size of the textures (width and height).
+ * @returns - An object containing:
+ *   - readTarget - The current texture being read.
+ *   - writeTarget - The current texture being written to.
+ *   - swap - A function to swap the read and write targets.
+ */
 function usePingPongTexture(
     size: number,
 ) {
