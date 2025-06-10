@@ -183,14 +183,13 @@ void main() {
       accel += dirBack * (dist - uBoundaryRadius) * 2.0;
     }
 
-    // 3) Euler update velocity
+    // Euler update velocity
     vel += accel * uDeltaTime;
 
     vel = mix(vel, curlDir * length(vel), 0.2);
 
-    // 4) Damping
+    // Damping
     vel *= 1.0 - (uDamping * uDeltaTime);
 
-    // Keep w as is (or store something else)
     gl_FragColor = vec4(vel, velData.w);
 }

@@ -30,6 +30,26 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         };
     }, []);
 
+    useEffect(function handleTouchInput() {
+        let lastTap = 0;
+
+        const handleTouch = () => {
+            const currentTime = new Date().getTime();
+            const tapInterval = currentTime - lastTap;
+
+            if (tapInterval < 300 && tapInterval > 0) {
+                setIsDebug(prev => !prev);
+            }
+
+            lastTap = currentTime;
+        };
+
+        window.addEventListener('touchend', handleTouch);
+        return () => {
+            window.removeEventListener('touchend', handleTouch);
+        };
+    }, []);
+
     return (
         <div className={"h-screen w-screen"}>
             <Suspense fallback={
@@ -42,7 +62,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
             {debugOverlay}
             <div
                 className={"absolute bottom-1 right-1 opacity-10 text-white text-sm"}>
-                Press 'D' to toggle debug menu
+                Press 'D' or double tap to toggle debug menu
             </div>
            <div
                className={"absolute top-1 right-1 bg-gray-800 p-2 rounded text-white flex flex-col gap-2"}
