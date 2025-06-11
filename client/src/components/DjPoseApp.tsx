@@ -1,5 +1,5 @@
-import {lazy, memo, RefObject, Suspense, useEffect, useState} from "react";
-import {UniformProps} from "./ParticleSimulation.tsx";
+import {lazy, memo, RefObject, Suspense, useEffect, useRef, useState} from "react";
+import {ParticleSimulationRef, UniformProps} from "./ParticleSimulation.tsx";
 import usePoseDetection from "../hooks/usePoseDetection.tsx";
 import {useMicrophoneLevel} from "../hooks/useMicrophone.tsx";
 
@@ -20,12 +20,15 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         uCurlStrength: 1,
         uEnableAudio: 1,
     };
-    const audioLevel: RefObject<number> = useMicrophoneLevel()
+    const audioLevel: RefObject<number> = useMicrophoneLevel();
+    const particleSimRef = useRef<ParticleSimulationRef>(null);
 
     useEffect(function handleKeyPress() {
         const handleKeyPress = (event: KeyboardEvent) => {
-            if (event.key === 'd') {
+            if (event.key.toLowerCase() === 'd') {
                 setIsDebug(prev => !prev);
+            } else if (event.key.toLowerCase() === 'r') {
+                particleSimRef.current?.reset();
             }
         };
 
@@ -62,7 +65,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                     <h1 className="text-2xl font-semibold mb-6">Loading...</h1>
                 </div>
             }>
-                <ThreeCanvas uniforms={uniforms} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} />
+                <ThreeCanvas uniforms={uniforms} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} particleSimRef={particleSimRef} />
             </Suspense>
             {debugOverlay}
             <div
@@ -73,7 +76,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                className={"absolute top-1 right-1 bg-gray-800 p-2 rounded text-white flex flex-col gap-2"}
                 style={{opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s'}}
            >
-                        <label>
+                        <label className="flex gap-1 justify-between">
                             uMaxLife:
                             <input
                                 type="range"
@@ -84,7 +87,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                                 onChange={(e) => uniforms.uMaxLife = parseFloat(e.target.value)}
                             />
                         </label>
-                        <label>
+                        <label className="flex gap-1 justify-between">
                             uDamping:
                             <input
                                 type="range"
@@ -95,7 +98,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                                 onChange={(e) => uniforms.uDamping = parseFloat(e.target.value)}
                             />
                         </label>
-                        <label>
+                        <label className="flex gap-1 justify-between">
                             uBoundaryRadius:
                             <input
                                 type="range"
@@ -106,7 +109,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                                 onChange={(e) => uniforms.uBoundaryRadius = parseFloat(e.target.value)}
                             />
                         </label>
-                        <label>
+                        <label className="flex gap-1 justify-between">
                             uCurlStrength:
                             <input
                                 type="range"
@@ -117,7 +120,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                                 onChange={(e) => uniforms.uCurlStrength = parseFloat(e.target.value)}
                             />
                         </label>
-                       <label>
+                       <label className="flex gap-1 justify-between">
                            Enable Audio Input:
                            <input
                                type="checkbox"
@@ -125,6 +128,14 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                                onChange={(e) => uniforms.uEnableAudio = e.target.checked ? 1 : 0}
                            />
                        </label>
+               <label className="flex gap-1 justify-between">
+                   Reset particles
+                   <button
+                       type="reset"
+                       onClick={() => particleSimRef.current?.reset()}>
+                       Reset
+                   </button>
+               </label>
                     </div>
         </div>
     )
