@@ -13,6 +13,7 @@ export type ThreeCanvasProps = {
     uniforms: UniformProps;
     audioLevel: RefObject<number>;
     particleSimRef: RefObject<ParticleSimulationRef | null>;
+    particleCount: number;
 };
 
 /**
@@ -25,7 +26,7 @@ const ThreeCanvas = memo(function ThreeCanvasComponent({
     detectedLabel,
     isDebug,
     uniforms,
-    audioLevel, particleSimRef
+    audioLevel, particleSimRef, particleCount
 }: ThreeCanvasProps) {
     return (
         <Canvas camera={{ position: [0.0, 0.0, 2.0], near: 0.1, far: 100 }}
@@ -33,7 +34,7 @@ const ThreeCanvas = memo(function ThreeCanvasComponent({
             {import.meta.env.DEV && (
                 <Perf position="top-left" style={{ opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s' }} />
             )}
-            <ParticleSimulation ref={particleSimRef} uniforms={uniforms} audioLevel={audioLevel} size={PARTICLE_COUNT} label={detectedLabel} />
+            <ParticleSimulation ref={particleSimRef} uniforms={uniforms} audioLevel={audioLevel} size={PARTICLE_COUNT} particleCount={particleCount} label={detectedLabel} />
             <CameraController detectedLabel={detectedLabel} />
             <EffectComposer>
                 <ToneMapping mode={AgXToneMapping} />

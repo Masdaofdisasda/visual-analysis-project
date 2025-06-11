@@ -13,6 +13,7 @@ export type ParticleSimulationProps = {
     label: RefObject<Label>;
     uniforms: UniformProps;
     audioLevel: RefObject<number>;
+    particleCount: number,
 }
 
 /**
@@ -46,12 +47,12 @@ export interface ParticleSimulationRef {
  */
 const ParticleSimulation = memo(
     forwardRef(function ParticleSimulationComponent(
-        { size, label, uniforms, audioLevel }: ParticleSimulationProps,
+        { size, label, uniforms, audioLevel, particleCount }: ParticleSimulationProps,
         ref
     ) {
         const { gl } = useThree();
         const deltaHistory = useRef<number[]>([]);
-        const {particleShader, particleComponent} = useParticlePass(size);
+        const {particleShader, particleComponent} = useParticlePass(particleCount);
         const {texPositions, texVelocities} = useInitialDataTextures(size);
         const {velocitySimulationShader, velocityScene, velocityComponent} = useVelocitySimulationPass(size, texPositions, texVelocities);
         const {positionSimulationShader, positionScene, positionComponent} = usePositionSimulationPass(size, texPositions, texVelocities);
