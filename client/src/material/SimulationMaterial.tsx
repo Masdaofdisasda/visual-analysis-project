@@ -6,6 +6,7 @@ import {shaderMaterial} from "@react-three/drei";
 import simulationVertexShader from '../shaders/simulationVertex.glsl?raw';
 import posSimulationFragmentShader from '../shaders/positionSimulationFragment.glsl?raw';
 import velSimulationFragmentShader from '../shaders/velocitySimulationFragment.glsl?raw';
+import {PARTICLE_COUNT, PARTICLE_TEXTURE_SIZE} from "../components/DjPoseApp.types.ts";
 
 function createPositionSimulationMaterial(texPositions: THREE.Texture, texVelocities: THREE.Texture) {
     return shaderMaterial( {
@@ -14,6 +15,8 @@ function createPositionSimulationMaterial(texPositions: THREE.Texture, texVeloci
         uDeltaTime: 0,
         uTime: 0,
         uMaxLife: 10,
+        uParticleTextureSize: PARTICLE_TEXTURE_SIZE,
+        uParticleCount: PARTICLE_COUNT,
     },  simulationVertexShader, posSimulationFragmentShader)
 }
 
@@ -28,7 +31,9 @@ function createVelocitySimulationMaterial(texPositions: THREE.Texture, texVeloci
         uForce: new THREE.Vector3(0, 0, 0),
         uDamping: 0.99,
         uBoundaryRadius: 100.0,
-        uCurlStrength: 1.0
+        uCurlStrength: 1.0,
+        uParticleTextureSize: PARTICLE_TEXTURE_SIZE,
+        uParticleCount: PARTICLE_COUNT,
     },  simulationVertexShader, velSimulationFragmentShader)
 }
 

@@ -1,5 +1,7 @@
 uniform sampler2D texPositions;
 uniform float uMaxLife;
+uniform float uParticleTextureSize;
+uniform float uParticleCount;
 
 varying float vLifeFrac; // pass to fragment
 
@@ -13,5 +15,7 @@ void main() {
 
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(pos, 1.0);
 
-    gl_PointSize = mix(1.5, 0.0, lifeFrac); // shrink to 0 at end of life
+    float ratio = sqrt(uParticleCount) / (uParticleTextureSize);
+    float pointSize = 1.0 / ratio;
+    gl_PointSize = mix(1.5 * pointSize, 0.0, lifeFrac); // shrink to 0 at end of life
 }

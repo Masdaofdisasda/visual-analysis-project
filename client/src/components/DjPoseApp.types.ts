@@ -1,4 +1,5 @@
 
-export const PARTICLE_COUNT = 1024; // actual number of particles is 1024 * 1024
+export const PARTICLE_TEXTURE_SIZE = 1024;
+export const PARTICLE_COUNT = PARTICLE_TEXTURE_SIZE * PARTICLE_TEXTURE_SIZE;
 
 export type Label = 'neutral' | 'left' | 'right' | 'up' | 'wide';

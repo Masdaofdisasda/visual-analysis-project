@@ -2,7 +2,7 @@ import {lazy, memo, RefObject, Suspense, useEffect, useRef, useState} from "reac
 import {ParticleSimulationRef, UniformProps} from "./ParticleSimulation.tsx";
 import usePoseDetection from "../hooks/usePoseDetection.tsx";
 import {useMicrophoneLevel} from "../hooks/useMicrophone.tsx";
-import {PARTICLE_COUNT} from "./DjPoseApp.types.ts";
+import {PARTICLE_COUNT, PARTICLE_TEXTURE_SIZE} from "./DjPoseApp.types.ts";
 
 const ThreeCanvas = lazy(() => import("./ThreeCanvas.tsx"));
 
@@ -19,9 +19,9 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         uDamping: 0.99,
         uBoundaryRadius: 100,
         uCurlStrength: 1,
-        uEnableAudio: 1
+        uEnableAudio: 1,
+        uParticleCount: PARTICLE_COUNT
     };
-    const [particleCount, setParticleCount] = useState(PARTICLE_COUNT);
     const audioLevel: RefObject<number> = useMicrophoneLevel();
     const particleSimRef = useRef<ParticleSimulationRef>(null);
 
@@ -67,7 +67,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                     <h1 className="text-2xl font-semibold mb-6">Loading...</h1>
                 </div>
             }>
-                <ThreeCanvas uniforms={uniforms} particleCount={particleCount} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} particleSimRef={particleSimRef} />
+                <ThreeCanvas uniforms={uniforms} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} particleSimRef={particleSimRef} />
             </Suspense>
             {debugOverlay}
             <div
@@ -132,8 +132,13 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                        step="1"
                        defaultValue="3"
                        onChange={(e) => {
-                           const values = [128, 256, 512, 1024];
-                           setParticleCount(values[parseInt(e.target.value)]);
+                           const values = [
+                               PARTICLE_TEXTURE_SIZE/8,
+                               PARTICLE_TEXTURE_SIZE/4,
+                               PARTICLE_TEXTURE_SIZE/2,
+                               PARTICLE_TEXTURE_SIZE];
+                           const newCount = values[parseInt(e.target.value)];
+                            uniforms.uParticleCount = newCount * newCount;
                        }}
                    />
                </label>
