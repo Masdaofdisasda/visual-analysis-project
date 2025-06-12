@@ -163,7 +163,7 @@ const ParticleSimulation = memo(
 
             const referenceCount = ParticleCount.Medium;
             const actualCount = textureSizeToParticleCount(particleTextureSize);
-            particleShader.uIntensity = referenceCount / actualCount;
+            particleShader.uIntensityScale = referenceCount / actualCount;
 
             swapPosition();
             swapVelocity();

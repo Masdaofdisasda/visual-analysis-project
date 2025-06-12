@@ -29,6 +29,9 @@ vec3 blackbody(float kelvin) {
 
     return vec3(r, g, b);
 }
+vec3 gammaCorrect(vec3 color) {
+    return pow(color, vec3(1.0 / 2.2)); // Apply gamma correction for sRGB
+}
 
 void main() {
     float dist = length(gl_PointCoord - 0.5);
@@ -39,5 +42,5 @@ void main() {
     float temperature = mix(35000.0, 1000.0, vLifeFrac);
     vec3 color = blackbody(temperature) * uIntensityScale;
 
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(gammaCorrect(color), 1.0);
 }
