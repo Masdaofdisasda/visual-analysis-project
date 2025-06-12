@@ -1,3 +1,5 @@
+uniform float uIntensityScale;
+
 varying float vLifeFrac;
 
 // Approximate RGB from Kelvin temperature (in range ~1000K to 10000K)
@@ -35,7 +37,7 @@ void main() {
     // vLifeFrac goes from 0 (new) to 1 (old)
     // Map this to 10000K (new) → 1000K (old)
     float temperature = mix(35000.0, 1000.0, vLifeFrac);
-    vec3 color = blackbody(temperature);
+    vec3 color = blackbody(temperature) * uIntensityScale;
 
     gl_FragColor = vec4(color, 1.0);
 }

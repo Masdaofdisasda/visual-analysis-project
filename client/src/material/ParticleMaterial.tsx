@@ -9,6 +9,7 @@ function createParticleMaterial(){
     return shaderMaterial( {
         texPositions:  null as THREE.Texture | null,
         uMaxLife: 10,
+        uIntensityScale: 1.0,
     },  vertexShader, fragmentShader)
 }
 

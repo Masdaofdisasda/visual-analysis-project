@@ -1,6 +1,6 @@
 import {forwardRef, memo, RefObject, useImperativeHandle, useMemo, useRef} from "react";
 import * as THREE from "three";
-import {Label, ParticleTextureSize} from "./DjPoseApp.types.ts";
+import {Label, ParticleCount, ParticleTextureSize, textureSizeToParticleCount} from "./DjPoseApp.types.ts";
 import useParticlePass from "../passes/useParticlePass.tsx";
 import useInitialDataTextures from "../hooks/useInitialDataTextures.tsx";
 import useVelocitySimulationPass from "../passes/useVelocitySimulationPass.tsx";
@@ -160,6 +160,10 @@ const ParticleSimulation = memo(
             computePositionSimulation(delta, clock.elapsedTime, gl);
             gl.setRenderTarget(null);
             particleShader.texPositions = positionWrite.current.texture;
+
+            const referenceCount = ParticleCount.Medium;
+            const actualCount = textureSizeToParticleCount(particleTextureSize);
+            particleShader.uIntensity = referenceCount / actualCount;
 
             swapPosition();
             swapVelocity();
