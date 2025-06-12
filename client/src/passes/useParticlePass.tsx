@@ -1,9 +1,10 @@
 import {createParticleMaterial} from "../material/ParticleMaterial.tsx";
 import {useMemo} from "react";
 import * as THREE from "three";
+import {ParticleCount, ParticleTextureSize, textureSizeToParticleCount} from "../components/DjPoseApp.types.ts";
 
 function useParticlePass(
-    size: number,
+    particleTextureSize: ParticleTextureSize,
 ) {
     const ParticleMaterial = createParticleMaterial();
 
@@ -17,16 +18,17 @@ function useParticlePass(
     }, [ParticleMaterial]);
 
     const particlesPosition = useMemo(() => {
-        const length = size * size;
+        const particleCount: ParticleCount = textureSizeToParticleCount(particleTextureSize);
+        const length = particleCount;
         const particles = new Float32Array(length * 3);
         for (let i = 0; i < length; i++) {
             const i3 = i * 3;
-            particles[i3 + 0] = (i % size) / size;
-            particles[i3 + 1] = i / (size * size);
+            particles[i3 + 0] = (i % particleTextureSize) / particleTextureSize;
+            particles[i3 + 1] = i / particleCount;
             particles[i3 + 2] = 0;
         }
         return particles;
-    }, [size]);
+    }, [particleTextureSize]);
 
     const particleComponent = (<points>
             <bufferGeometry>

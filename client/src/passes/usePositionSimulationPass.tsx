@@ -5,13 +5,12 @@ import useQuadGeometry from "../hooks/useQuadGeometry.tsx";
 import {createPortal} from "@react-three/fiber";
 
 function usePositionSimulationPass(
-    size: number,
     texPositions: THREE.DataTexture,
     texVelocities: THREE.DataTexture,
 ) {
     const PositionSimulationMaterial = createPositionSimulationMaterial(texPositions, texVelocities);
     const positionSimulationShader = useMemo(
-        () => new PositionSimulationMaterial(size), [size]);
+        () => new PositionSimulationMaterial(), [PositionSimulationMaterial]);
     const positionScene = useMemo(() => new THREE.Scene(), []);
     const { positions, uvs } = useQuadGeometry();
 

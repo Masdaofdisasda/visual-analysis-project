@@ -5,14 +5,13 @@ import * as THREE from "three";
 import useQuadGeometry from "../hooks/useQuadGeometry.tsx";
 
 function useVelocitySimulationPass(
-    size: number,
     texPositions: THREE.DataTexture,
     texVelocities: THREE.DataTexture,
 ) {
     const VelocitySimulationMaterial = createVelocitySimulationMaterial(texPositions, texVelocities);
 
     const velocitySimulationShader = useMemo(
-        () => new VelocitySimulationMaterial(size), [VelocitySimulationMaterial, size]);
+        () => new VelocitySimulationMaterial(), [VelocitySimulationMaterial]);
     const velocityScene = useMemo(() => new THREE.Scene(), []);
 
     const { positions, uvs } = useQuadGeometry();

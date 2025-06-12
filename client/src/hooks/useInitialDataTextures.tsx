@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import {useEffect, useState} from "react";
 
 function getPositionData(width: number, height: number, radius = 2, maxLife = 10) {
     const length = width * height * 4;
@@ -38,26 +39,36 @@ function getVelocityData(width: number, height: number, velocityScale = 0.1) {
     return data;
 }
 
-function useInitialDataTextures(size: number) {
+function useInitialDataTextures(particleTextureSize: number) {
+    const [textures, setTextures] = useState(() => createTextures(particleTextureSize));
 
+    useEffect(() => {
+        setTextures(createTextures(particleTextureSize));
+    }, [particleTextureSize]);
+
+    return textures;
+}
+
+function createTextures(particleTextureSize: number) {
     const texPositions = new THREE.DataTexture(
-        getPositionData(size, size),
-        size,
-        size,
+        getPositionData(particleTextureSize, particleTextureSize),
+        particleTextureSize,
+        particleTextureSize,
         THREE.RGBAFormat,
         THREE.FloatType
     );
     texPositions.needsUpdate = true;
+
     const texVelocities = new THREE.DataTexture(
-        getVelocityData(size, size),
-        size,
-        size,
+        getVelocityData(particleTextureSize, particleTextureSize),
+        particleTextureSize,
+        particleTextureSize,
         THREE.RGBAFormat,
         THREE.FloatType
     );
     texVelocities.needsUpdate = true;
 
-    return {texPositions, texVelocities};
+    return { texPositions, texVelocities };
 }
 
 export default useInitialDataTextures;
