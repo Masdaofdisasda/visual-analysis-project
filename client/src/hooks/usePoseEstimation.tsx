@@ -9,6 +9,9 @@ import {Label} from "../components/DjPoseApp.types.ts";
 
 const LABEL_MAP: Label[] = ["left", "neutral", "right", "up", "wide"];
 
+let lastDetectionTime = 0;
+const detectionIntervalInMS = 1/24 * 1000; // 24 FPS
+
 /**
  * Custom hook for estimating human poses using MediaPipe Pose and TensorFlow.js.
  *
@@ -82,7 +85,12 @@ function usePoseEstimation(
         // Initialize the camera
         const camera = new Camera(videoElement, {
             onFrame: async () => {
-                await pose.send({ image: videoElement });
+                const now = performance.now();
+                // detect pose roughly at 24 FPS
+                if (now - lastDetectionTime > detectionIntervalInMS) {
+                    await pose.send({ image: videoElement });
+                    lastDetectionTime = now;
+                }
             },
             width: 640,
             height: 480,
