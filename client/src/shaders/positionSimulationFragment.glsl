@@ -3,8 +3,6 @@ uniform sampler2D texVelocities;
 uniform float uDeltaTime;
 uniform float uMaxLife;         // maximum lifetime in seconds
 uniform float uTime;            // for random seed
-uniform float uParticleTextureSize;
-uniform float uParticleCount;
 
 varying vec2 vUv;
 
@@ -31,11 +29,6 @@ vec3 randomSphere(vec2 seed) {
 }
 
 void main() {
-    ivec2 pixel = ivec2(gl_FragCoord.xy);
-    int index = pixel.y * int(uParticleTextureSize) + pixel.x;
-
-    if (index >= int(uParticleCount)) discard;
-
     vec4 posAge = texture2D(texPositions, vUv);
     vec4 velData = texture2D(texVelocities, vUv);
 

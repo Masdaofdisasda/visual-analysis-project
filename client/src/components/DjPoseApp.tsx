@@ -2,7 +2,11 @@ import {lazy, memo, RefObject, Suspense, useEffect, useRef, useState} from "reac
 import {ParticleSimulationRef, UniformProps} from "./ParticleSimulation.tsx";
 import usePoseDetection from "../hooks/usePoseDetection.tsx";
 import {useMicrophoneLevel} from "../hooks/useMicrophone.tsx";
-import {PARTICLE_COUNT, PARTICLE_TEXTURE_SIZE} from "./DjPoseApp.types.ts";
+import {
+    DEFAULT_PARTICLE_COUNT,
+    ParticleTextureSize,
+    textureSizeToParticleCount
+} from "./DjPoseApp.types.ts";
 
 const ThreeCanvas = lazy(() => import("./ThreeCanvas.tsx"));
 
@@ -20,7 +24,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         uBoundaryRadius: 100,
         uCurlStrength: 1,
         uEnableAudio: 1,
-        uParticleCount: PARTICLE_COUNT
+        uParticleCount: DEFAULT_PARTICLE_COUNT
     };
     const audioLevel: RefObject<number> = useMicrophoneLevel();
     const particleSimRef = useRef<ParticleSimulationRef>(null);
@@ -133,12 +137,11 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                        defaultValue="3"
                        onChange={(e) => {
                            const values = [
-                               PARTICLE_TEXTURE_SIZE/8,
-                               PARTICLE_TEXTURE_SIZE/4,
-                               PARTICLE_TEXTURE_SIZE/2,
-                               PARTICLE_TEXTURE_SIZE];
+                               ParticleTextureSize.Small,
+                               ParticleTextureSize.Medium,
+                               ParticleTextureSize.Large,];
                            const newCount = values[parseInt(e.target.value)];
-                            uniforms.uParticleCount = newCount * newCount;
+                            uniforms.uParticleCount = textureSizeToParticleCount(newCount);
                        }}
                    />
                </label>

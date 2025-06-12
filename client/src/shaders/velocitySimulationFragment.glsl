@@ -6,8 +6,6 @@ uniform vec3 uForce;         // external force
 uniform float uDamping;      // velocity damping factor
 uniform float uBoundaryRadius;
 uniform float uCurlStrength;
-uniform float uParticleTextureSize;
-uniform float uParticleCount;
 
 varying vec2 vUv;
 
@@ -153,11 +151,6 @@ vec3 curlNoise( vec3 p ){
 }
 
 void main() {
-    ivec2 pixel = ivec2(gl_FragCoord.xy);
-    int index = pixel.y * int(uParticleTextureSize) + pixel.x;
-
-    if (index >= int(uParticleCount)) discard;
-
     vec4 posData = texture2D(texPositions, vUv);
     vec3 pos = posData.xyz;
     float age = posData.w;

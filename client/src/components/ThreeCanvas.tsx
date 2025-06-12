@@ -1,7 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { Perf } from "r3f-perf";
 import ParticleSimulation, {ParticleSimulationRef, UniformProps} from "./ParticleSimulation.tsx";
-import { Label, PARTICLE_TEXTURE_SIZE } from "./DjPoseApp.types.ts";
+import { Label, DEFAULT_PARTICLE_TEXTURE_SIZE } from "./DjPoseApp.types.ts";
 import {memo, RefObject} from "react";
 import { EffectComposer, ToneMapping } from "@react-three/postprocessing";
 import { AgXToneMapping } from "three";
@@ -33,7 +33,7 @@ const ThreeCanvas = memo(function ThreeCanvasComponent({
             {import.meta.env.DEV && (
                 <Perf position="top-left" style={{ opacity: isDebug ? 1 : 0, transition: 'opacity 0.5s' }} />
             )}
-            <ParticleSimulation ref={particleSimRef} uniforms={uniforms} audioLevel={audioLevel} particleTextureSize={PARTICLE_TEXTURE_SIZE} label={detectedLabel} />
+            <ParticleSimulation ref={particleSimRef} uniforms={uniforms} audioLevel={audioLevel} particleTextureSize={DEFAULT_PARTICLE_TEXTURE_SIZE} label={detectedLabel} />
             <CameraController detectedLabel={detectedLabel} />
             <EffectComposer>
                 <ToneMapping mode={AgXToneMapping} />

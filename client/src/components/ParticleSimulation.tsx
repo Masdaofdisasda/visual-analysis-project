@@ -1,6 +1,6 @@
 import {forwardRef, memo, RefObject, useImperativeHandle, useMemo, useRef} from "react";
 import * as THREE from "three";
-import {Label, PARTICLE_TEXTURE_SIZE} from "./DjPoseApp.types.ts";
+import {Label, ParticleCount} from "./DjPoseApp.types.ts";
 import useParticlePass from "../passes/useParticlePass.tsx";
 import useInitialDataTextures from "../hooks/useInitialDataTextures.tsx";
 import useVelocitySimulationPass from "../passes/useVelocitySimulationPass.tsx";
@@ -30,7 +30,7 @@ export type UniformProps = {
     uBoundaryRadius: number,
     uCurlStrength: number,
     uEnableAudio: number,
-    uParticleCount: number,
+    uParticleCount: ParticleCount,
 }
 
 export interface ParticleSimulationRef {
@@ -54,8 +54,8 @@ const ParticleSimulation = memo(
         const deltaHistory = useRef<number[]>([]);
         const {particleShader, particleComponent} = useParticlePass(particleTextureSize);
         const {texPositions, texVelocities} = useInitialDataTextures(particleTextureSize);
-        const {velocitySimulationShader, velocityScene, velocityComponent} = useVelocitySimulationPass(particleTextureSize, texPositions, texVelocities);
-        const {positionSimulationShader, positionScene, positionComponent} = usePositionSimulationPass(particleTextureSize, texPositions, texVelocities);
+        const {velocitySimulationShader, velocityScene, velocityComponent} = useVelocitySimulationPass(texPositions, texVelocities);
+        const {positionSimulationShader, positionScene, positionComponent} = usePositionSimulationPass(texPositions, texVelocities);
 
         const simulationCamera = useMemo(
             () =>
@@ -98,8 +98,6 @@ const ParticleSimulation = memo(
             const audioLevelValue = Math.max(audioLevel.current * uniforms.uEnableAudio, 0.00001)
             velocitySimulationShader.uCurlStrength = uniforms.uCurlStrength * audioLevelValue;
             velocitySimulationShader.uBoundaryRadius = uniforms.uBoundaryRadius;
-            velocitySimulationShader.uParticleTextureSize = PARTICLE_TEXTURE_SIZE;
-            velocitySimulationShader.uParticleCount = uniforms.uParticleCount;
             if (delta > 0) { // for the first frame the initial data texture is already set
                 velocitySimulationShader.texPositions = positionRead.current.texture;
                 velocitySimulationShader.texVelocities = velocityRead.current.texture;
@@ -141,8 +139,6 @@ const ParticleSimulation = memo(
             positionSimulationShader.uDeltaTime = delta;
             positionSimulationShader.uTime = time;
             positionSimulationShader.uMaxLife = uniforms.uMaxLife;
-            positionSimulationShader.uParticleTextureSize = PARTICLE_TEXTURE_SIZE;
-            positionSimulationShader.uParticleCount = uniforms.uParticleCount;
             if (delta > 0) { // for the first frame the initial data texture is already set
                 positionSimulationShader.texPositions = positionRead.current.texture;
                 positionSimulationShader.texVelocities = velocityRead.current.texture;
@@ -165,10 +161,6 @@ const ParticleSimulation = memo(
             computePositionSimulation(delta, clock.elapsedTime, gl);
             gl.setRenderTarget(null);
             particleShader.texPositions = positionWrite.current.texture;
-            particleShader.uParticleTextureSize = PARTICLE_TEXTURE_SIZE;
-            particleShader.uParticleCount = uniforms.uParticleCount;
-
-            console.log(uniforms.uParticleCount);
 
             swapPosition();
             swapVelocity();
