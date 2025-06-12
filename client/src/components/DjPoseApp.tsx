@@ -3,9 +3,7 @@ import {ParticleSimulationRef, UniformProps} from "./ParticleSimulation.tsx";
 import usePoseDetection from "../hooks/usePoseDetection.tsx";
 import {useMicrophoneLevel} from "../hooks/useMicrophone.tsx";
 import {
-    DEFAULT_PARTICLE_COUNT,
-    ParticleTextureSize,
-    textureSizeToParticleCount
+    ParticleTextureSize
 } from "./DjPoseApp.types.ts";
 
 const ThreeCanvas = lazy(() => import("./ThreeCanvas.tsx"));
@@ -24,8 +22,8 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         uBoundaryRadius: 100,
         uCurlStrength: 1,
         uEnableAudio: 1,
-        uParticleCount: DEFAULT_PARTICLE_COUNT
     };
+    const [particleTextureSize, setParticleTextureSize] = useState<ParticleTextureSize>(ParticleTextureSize.Medium);
     const audioLevel: RefObject<number> = useMicrophoneLevel();
     const particleSimRef = useRef<ParticleSimulationRef>(null);
 
@@ -64,6 +62,15 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
         };
     }, []);
 
+    // Trigger reset with timeout when particle size changes
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            particleSimRef.current?.reset();
+        }, 1000);
+
+        return () => clearTimeout(timeout);
+    }, [particleTextureSize]);
+
     return (
         <div className={"h-screen w-screen"}>
             <Suspense fallback={
@@ -71,7 +78,7 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                     <h1 className="text-2xl font-semibold mb-6">Loading...</h1>
                 </div>
             }>
-                <ThreeCanvas uniforms={uniforms} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} particleSimRef={particleSimRef} />
+                <ThreeCanvas uniforms={uniforms} audioLevel={audioLevel} isDebug={isDebug} detectedLabel={detectedLabel} particleSimRef={particleSimRef} particleTextureSize={particleTextureSize} />
             </Suspense>
             {debugOverlay}
             <div
@@ -132,16 +139,16 @@ const DjPoseApp = memo(function DjPoseAppInternal() {
                    <input
                        type="range"
                        min="0"
-                       max="3"
+                       max="2"
                        step="1"
-                       defaultValue="3"
+                       defaultValue="1"
                        onChange={(e) => {
                            const values = [
                                ParticleTextureSize.Small,
                                ParticleTextureSize.Medium,
                                ParticleTextureSize.Large,];
                            const newCount = values[parseInt(e.target.value)];
-                            uniforms.uParticleCount = textureSizeToParticleCount(newCount);
+                            setParticleTextureSize(newCount);
                        }}
                    />
                </label>

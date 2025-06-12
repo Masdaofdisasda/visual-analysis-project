@@ -1,6 +1,6 @@
 import {forwardRef, memo, RefObject, useImperativeHandle, useMemo, useRef} from "react";
 import * as THREE from "three";
-import {Label, ParticleCount} from "./DjPoseApp.types.ts";
+import {Label, ParticleTextureSize} from "./DjPoseApp.types.ts";
 import useParticlePass from "../passes/useParticlePass.tsx";
 import useInitialDataTextures from "../hooks/useInitialDataTextures.tsx";
 import useVelocitySimulationPass from "../passes/useVelocitySimulationPass.tsx";
@@ -9,10 +9,10 @@ import usePingPongTexture from "../hooks/usePingPongTexture.tsx";
 import {useFrame, useThree} from "@react-three/fiber";
 
 export type ParticleSimulationProps = {
-    particleTextureSize: number;
     label: RefObject<Label>;
     uniforms: UniformProps;
     audioLevel: RefObject<number>;
+    particleTextureSize: ParticleTextureSize;
 }
 
 /**
@@ -30,7 +30,6 @@ export type UniformProps = {
     uBoundaryRadius: number,
     uCurlStrength: number,
     uEnableAudio: number,
-    uParticleCount: ParticleCount,
 }
 
 export interface ParticleSimulationRef {
@@ -47,7 +46,7 @@ export interface ParticleSimulationRef {
  */
 const ParticleSimulation = memo(
     forwardRef(function ParticleSimulationComponent(
-        { particleTextureSize, label, uniforms, audioLevel }: ParticleSimulationProps,
+        { label, uniforms, audioLevel, particleTextureSize }: ParticleSimulationProps,
         ref
     ) {
         const { gl } = useThree();
